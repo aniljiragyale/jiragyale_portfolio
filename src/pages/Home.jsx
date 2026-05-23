@@ -4,13 +4,10 @@ import useScrollReveal from '../hooks/useScrollReveal'
 import ProjectCard from '../components/ProjectCard'
 import SkillsShowcase from '../components/SkillsShowcase'
 import PortfolioRating from '../components/PortfolioRating'
-import { FEATURED_PROJECTS } from '../data/projects'
-import { CONTACT, SUMMARY } from '../data/profile'
+import { useSiteContent } from '../context/SiteContentContext'
 import anilImg from '../assets/anil image professional.jpeg'
-import resumePdf from '../assets/Anil_Jiragyale_Resume_ATS.pdf'
 
-
-const SERVICES = [
+const DEFAULT_SERVICES = [
   {
     icon: '🤖',
     cls: '',
@@ -34,7 +31,7 @@ const SERVICES = [
   }
 ]
 
-const TESTIMONIALS = [
+const DEFAULT_TESTIMONIALS = [
   {
     text: "Anil delivered an AI-powered market intelligence platform that exceeded our expectations. His deep understanding of LLM systems and ability to translate complex requirements into clean, scalable code is remarkable.",
     name: 'Rokkun Systems',
@@ -62,6 +59,11 @@ const TESTIMONIALS = [
 ]
 
 export default function Home() {
+  const { content, resumeUrl, resumeFileName, featuredProjects } = useSiteContent()
+  const CONTACT = content.contact
+  const SUMMARY = content.summary
+  const SERVICES = content.home?.services?.length ? content.home.services : DEFAULT_SERVICES
+  const TESTIMONIALS = content.home?.testimonials?.length ? content.home.testimonials : DEFAULT_TESTIMONIALS
   const pageRef = useScrollReveal()
 
   // Hero reveal on mount
@@ -107,13 +109,13 @@ export default function Home() {
           <div className="hero-actions rv d3">
             <Link to="/projects" className="btn-grd">View Projects ✦</Link>
             <Link to="/contact" className="btn-ghost">Contact Me →</Link>
-            <a href={resumePdf} download="Anil_Jiragyale_Resume_ATS.pdf" className="btn-ghost">
+            <a href={resumeUrl} download={resumeFileName} className="btn-ghost">
               Download Resume <i className="fas fa-download" style={{ marginLeft: '4px' }}></i>
             </a>
             <div className="hero-socials" aria-label="Social links">
-              <a href="https://linkedin.com/in/anil-jiragyale" target="_blank" rel="noreferrer" className="btn-sq" title="LinkedIn"><i className="fab fa-linkedin-in"></i></a>
-              <a href="https://github.com/aniljiragyale" target="_blank" rel="noreferrer" className="btn-sq" title="GitHub"><i className="fab fa-github"></i></a>
-              <a href="tel:+919591585862" className="btn-sq" title="Phone"><i className="fas fa-phone"></i></a>
+              <a href={CONTACT.linkedin} target="_blank" rel="noreferrer" className="btn-sq" title="LinkedIn"><i className="fab fa-linkedin-in"></i></a>
+              <a href={CONTACT.github} target="_blank" rel="noreferrer" className="btn-sq" title="GitHub"><i className="fab fa-github"></i></a>
+              <a href={`tel:${CONTACT.phone.replace(/\s/g, '')}`} className="btn-sq" title="Phone"><i className="fas fa-phone"></i></a>
             </div>
           </div>
         </div>
@@ -212,7 +214,7 @@ export default function Home() {
           <p className="sec-sub rv">Production AI platforms, enterprise tools at GSK GCC, and full-stack applications from my resume.</p>
 
           <div className="proj-grid proj-grid-featured">
-            {FEATURED_PROJECTS.map((proj, i) => (
+            {featuredProjects.map((proj, i) => (
               <ProjectCard
                 key={proj.id}
                 project={proj}
@@ -268,8 +270,8 @@ export default function Home() {
               <Link to="/contact" className="btn-grd">Get In Touch ✦</Link>
               <Link to="/projects" className="btn-ghost">See My Work →</Link>
               <a
-                href={resumePdf}
-                download="Anil_Jiragyale_Resume_ATS.pdf"
+                href={resumeUrl}
+                download={resumeFileName}
                 className="btn-ghost"
                 target="_blank"
                 rel="noreferrer"

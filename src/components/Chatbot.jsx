@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import resumePdf from '../assets/Anil_Jiragyale_Resume_ATS.pdf'
-import { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS } from '../data/profile'
-import { PROJECTS } from '../data/projects'
+import { useSiteContent } from '../context/SiteContentContext'
 
 const CHIPS = [
   { label: '💻 Skills', query: 'What are your core skills?' },
@@ -74,7 +72,7 @@ function renderMessageText(text) {
   return elements
 }
 
-function getBotResponse(query) {
+function getBotResponse(query, { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS, PROJECTS, resumeUrl }) {
   const q = query.toLowerCase()
 
   if (q.includes('skill') || q.includes('technolog') || q.includes('lang') || q.includes('stack') || q.includes('core')) {
@@ -100,7 +98,7 @@ function getBotResponse(query) {
   }
 
   if (q.includes('resume') || q.includes('cv')) {
-    return `Download Anil's resume:\n👉 **[Download Resume PDF](${resumePdf})**`
+    return `Download Anil's resume:\n👉 **[Download Resume PDF](${resumeUrl})**`
   }
 
   if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('phone') || q.includes('reach') || q.includes('linkedin') || q.includes('github')) {
@@ -110,7 +108,7 @@ function getBotResponse(query) {
 • 📞 **${CONTACT.phone}**
 • 💼 [LinkedIn](${CONTACT.linkedin})
 • 💻 [GitHub](${CONTACT.github})
-• 📄 [Download Resume](${resumePdf})`
+• 📄 [Download Resume](${resumeUrl})`
   }
 
   if (q.includes('education') || q.includes('college') || q.includes('degree')) {
@@ -131,6 +129,15 @@ Try: skills, experience, projects, or contact.`
 }
 
 export default function Chatbot() {
+  const { content, resumeUrl } = useSiteContent()
+  const botCtx = {
+    CONTACT: content.contact,
+    EXPERIENCE: content.experience,
+    EDUCATION: content.education,
+    CERTIFICATIONS: content.certifications,
+    PROJECTS: content.projects,
+    resumeUrl,
+  }
   const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([
@@ -191,7 +198,7 @@ export default function Chatbot() {
     setIsTyping(true)
 
     setTimeout(() => {
-      setMessages((prev) => [...prev, { sender: 'bot', text: getBotResponse(text) }])
+      setMessages((prev) => [...prev, { sender: 'bot', text: getBotResponse(text, botCtx) }])
       setIsTyping(false)
     }, 800)
   }

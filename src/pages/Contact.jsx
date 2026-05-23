@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import emailjs from '@emailjs/browser'
+import PageBack from '../components/PageBack'
 import useScrollReveal from '../hooks/useScrollReveal'
-import { CONTACT } from '../data/profile'
-import { saveMessages, getMessages } from '../utils/portfolioStorage'
+import { useSiteContent } from '../context/SiteContentContext'
+import { submitMessage } from '../utils/portfolioApi'
 
 function getEmailJsConfig() {
   return {
@@ -16,6 +17,8 @@ function getEmailJsConfig() {
 }
 
 export default function Contact() {
+  const { content } = useSiteContent()
+  const CONTACT = content.contact
   const pageRef = useScrollReveal()
   const formRef = useRef(null)
   const [formData, setFormData] = useState({
@@ -46,9 +49,8 @@ export default function Contact() {
     }))
   }
 
-  const saveToAdmin = (payload) => {
-    const entry = { id: Date.now(), ...payload, date: new Date().toLocaleString() }
-    saveMessages([entry, ...getMessages()])
+  const saveToAdmin = async (payload) => {
+    await submitMessage(payload)
   }
 
   const sendViaApi = async (payload) => {
@@ -94,7 +96,7 @@ export default function Contact() {
 
     try {
       await emailjs.send(serviceId, templateId, templateParams, { publicKey })
-      saveToAdmin({ name, email, subject: subjectLine, message })
+      await saveToAdmin({ name, email, subject: subjectLine, message })
       setStatus({
         submitting: false,
         text: 'Thank you! Message sent successfully — I will reply to your email soon.',
@@ -105,7 +107,7 @@ export default function Contact() {
       console.warn('EmailJS SDK failed, trying REST API...', sdkError)
       try {
         await sendViaApi(templateParams)
-        saveToAdmin({ name, email, subject: subjectLine, message })
+        await saveToAdmin({ name, email, subject: subjectLine, message })
         setStatus({
           submitting: false,
           text: 'Thank you! Message sent successfully — I will reply to your email soon.',
@@ -131,6 +133,7 @@ export default function Contact() {
     <div ref={pageRef}>
       <div className="sec-wrap">
         <div className="container page-hero-wrap" id="contact">
+          <PageBack />
           <div className="eyebrow rv">Let's Connect</div>
           <h1 className="sec-title rv">Get In <span>Touch</span></h1>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { addRating, getRatingStats } from '../utils/portfolioStorage'
+import { submitRating, fetchRatingsPublicStats } from '../utils/portfolioApi'
 
 function StarButton({ value, filled, onClick, onHover }) {
   return (
@@ -21,9 +21,13 @@ export default function PortfolioRating() {
   const [name, setName] = useState('')
   const [comment, setComment] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [stats, setStats] = useState({ count: 0, average: 0 })
 
-  const refreshStats = () => setStats(getRatingStats())
+  const refreshStats = async () => {
+    const next = await fetchRatingsPublicStats()
+    setStats(next)
+  }
 
   useEffect(() => {
     refreshStats()
@@ -31,12 +35,14 @@ export default function PortfolioRating() {
 
   const displayStars = hover || selected
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (selected < 1) return
+    if (selected < 1 || submitting) return
 
-    addRating({ stars: selected, name, comment })
-    refreshStats()
+    setSubmitting(true)
+    await submitRating({ stars: selected, name, comment })
+    await refreshStats()
+    setSubmitting(false)
     setSubmitted(true)
     setName('')
     setComment('')
@@ -54,7 +60,7 @@ export default function PortfolioRating() {
             <div className="eyebrow">Your Feedback</div>
             <h2 className="rating-title">Rate This <span>Portfolio</span></h2>
             <p className="rating-sub">
-              How was your experience? Your rating helps me improve — visible only in my admin dashboard.
+              How was your experience? Your rating helps me improve — visible in my admin dashboard.
             </p>
           </div>
 
@@ -133,8 +139,8 @@ export default function PortfolioRating() {
               </div>
             </div>
 
-            <button type="submit" className="btn-grd rating-submit" disabled={selected < 1}>
-              Submit Rating ✦
+            <button type="submit" className="btn-grd rating-submit" disabled={selected < 1 || submitting}>
+              {submitting ? 'Submitting…' : 'Submit Rating ✦'}
             </button>
           </form>
         )}

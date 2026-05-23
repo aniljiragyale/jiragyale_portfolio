@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { SKILL_CATEGORIES } from '../data/profile'
+import { useSiteContent } from '../context/SiteContentContext'
 
 export default function SkillsShowcase() {
+  const { content } = useSiteContent()
+  const SKILL_CATEGORIES = content.skillCategories
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
 

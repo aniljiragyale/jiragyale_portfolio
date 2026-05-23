@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { areAdminCredentialsConfigured, loginAdmin } from '../config/adminAuth'
+import { setAdminApiToken } from '../utils/portfolioApi'
 
 function setAdminSession(user) {
   const payload = { at: Date.now(), user }
@@ -37,6 +38,7 @@ export default function AdminLoginForm({ onSuccess }) {
 
     if (result.ok) {
       setAdminSession(username.trim())
+      if (result.token) setAdminApiToken(result.token)
       setPassword('')
       onSuccess(username.trim())
       return

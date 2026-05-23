@@ -21,26 +21,28 @@ export function validateAdminLogin(username, password) {
   )
 }
 
-/** @returns {Promise<{ ok: boolean, reason?: 'invalid'|'error' }>} */
+/** @returns {Promise<{ ok: boolean, token?: string, reason?: 'invalid'|'error' }>} */
 export async function loginAdmin(username, password) {
   const trimmedUser = username.trim()
 
-  if (import.meta.env.PROD) {
-    try {
-      const res = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: trimmedUser, password }),
-      })
-      const data = await res.json().catch(() => ({}))
+  try {
+    const res = await fetch('/api/admin-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: trimmedUser, password }),
+    })
+    const data = await res.json().catch(() => ({}))
 
-      if (res.ok && data.success) return { ok: true }
-      if (res.status === 401) return { ok: false, reason: 'invalid' }
-    } catch {
-      /* API unavailable — validate in browser below */
+    if (res.ok && data.success) {
+      return { ok: true, token: data.token }
     }
+    if (res.status === 401) return { ok: false, reason: 'invalid' }
+  } catch {
+    /* API unavailable — fall back to local validation (dev only) */
   }
 
-  if (validateAdminLogin(trimmedUser, password)) return { ok: true }
+  if (validateAdminLogin(trimmedUser, password)) {
+    return { ok: true, token: null }
+  }
   return { ok: false, reason: 'invalid' }
 }

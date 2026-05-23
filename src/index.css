@@ -1359,6 +1359,81 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.55;
   font-size: 0.82rem;
 }
+.admin-storage-notice {
+  margin-bottom: 1.25rem;
+  line-height: 1.55;
+}
+
+.admin-content-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-content-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.admin-content-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-content-hint,
+.admin-content-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+.admin-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.admin-field {
+  margin-bottom: 0.75rem;
+}
+
+.admin-edit-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-resume-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.admin-upload-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+.admin-save-toast {
+  margin-bottom: 1rem;
+}
+
+.admin-loading-hint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0.5rem 0 1rem;
+}
+
 .admin-config-notice code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.78rem;

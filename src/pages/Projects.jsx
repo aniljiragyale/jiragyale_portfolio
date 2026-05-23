@@ -1,10 +1,14 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import PageBack from '../components/PageBack'
 import useScrollReveal from '../hooks/useScrollReveal'
 import ProjectCard from '../components/ProjectCard'
-import { PROJECTS, PROJECT_CATEGORIES } from '../data/projects'
+import { useSiteContent } from '../context/SiteContentContext'
 
 export default function Projects() {
+  const { content } = useSiteContent()
+  const PROJECTS = content.projects
+  const PROJECT_CATEGORIES = content.projectCategories
   const pageRef = useScrollReveal()
   const [activeTab, setActiveTab] = useState('All')
 
@@ -14,8 +18,9 @@ export default function Projects() {
 
   return (
     <div ref={pageRef}>
-      <div className="sec-wrap page-hero-wrap">
-        <div className="container" id="projects">
+      <div className="sec-wrap">
+        <div className="container page-hero-wrap" id="projects">
+          <PageBack />
           <div className="eyebrow rv">Portfolio</div>
           <h1 className="sec-title rv">Featured <span>Projects</span></h1>
           <p className="sec-sub rv">Production AI platforms, enterprise tools at GSK GCC, and full-stack applications from my resume.</p>

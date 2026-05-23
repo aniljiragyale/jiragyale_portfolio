@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import AdminLoginForm from '../components/AdminLoginForm'
+import AdminSiteContent from '../components/admin/AdminSiteContent'
 import {
-  getMessages,
-  saveMessages,
-  getRatings,
-  deleteRating,
-  clearAllRatings,
-  getRatingStats,
-} from '../utils/portfolioStorage'
+  fetchMessagesAdmin,
+  deleteMessageAdmin,
+  clearMessagesAdmin,
+  fetchRatingsAdmin,
+  deleteRatingAdmin,
+  clearRatingsAdmin,
+  clearAdminApiToken,
+} from '../utils/portfolioApi'
 
 function StarDisplay({ count }) {
   return (
@@ -27,12 +29,32 @@ export default function Admin() {
   const [messages, setMessages] = useState([])
   const [ratings, setRatings] = useState([])
   const [ratingStats, setRatingStats] = useState({ count: 0, average: 0, distribution: {} })
+  const [loading, setLoading] = useState(false)
+  const [storageOk, setStorageOk] = useState(true)
 
-  const loadAll = () => {
-    setMessages(getMessages())
-    setRatings(getRatings())
-    setRatingStats(getRatingStats())
-  }
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    const msgResult = await fetchMessagesAdmin()
+    if (Array.isArray(msgResult)) {
+      setMessages(msgResult)
+      setStorageOk(true)
+    } else if (msgResult?.error === 'storage_not_configured') {
+      setMessages(msgResult.data || [])
+      setStorageOk(false)
+    } else if (msgResult?.error === 'unauthorized') {
+      setIsAuthorized(false)
+      setLoading(false)
+      return
+    } else {
+      setMessages([])
+    }
+
+    const ratingResult = await fetchRatingsAdmin()
+    setRatings(ratingResult.ratings || [])
+    setRatingStats(ratingResult.stats || { count: 0, average: 0, distribution: {} })
+    if (ratingResult.storageOk === false) setStorageOk(false)
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
     const authStatus =
@@ -43,7 +65,7 @@ export default function Admin() {
       setAdminUser(authUser)
       loadAll()
     }
-  }, [])
+  }, [loadAll])
 
   const handleLogout = () => {
     setIsAuthorized(false)
@@ -53,32 +75,32 @@ export default function Admin() {
     localStorage.removeItem('admin_authorized')
     localStorage.removeItem('admin_user')
     localStorage.removeItem('admin_session')
+    clearAdminApiToken()
   }
 
-  const handleDeleteMessage = (id) => {
-    const updated = messages.filter((m) => m.id !== id)
+  const handleDeleteMessage = async (id) => {
+    const updated = await deleteMessageAdmin(id)
     setMessages(updated)
-    saveMessages(updated)
   }
 
-  const handleClearMessages = () => {
+  const handleClearMessages = async () => {
     if (window.confirm('Delete all contact messages?')) {
-      setMessages([])
-      saveMessages([])
+      const updated = await clearMessagesAdmin()
+      setMessages(updated)
     }
   }
 
-  const handleDeleteRating = (id) => {
-    const updated = deleteRating(id)
+  const handleDeleteRating = async (id) => {
+    const { ratings: updated, stats } = await deleteRatingAdmin(id)
     setRatings(updated)
-    setRatingStats(getRatingStats())
+    setRatingStats(stats)
   }
 
-  const handleClearRatings = () => {
+  const handleClearRatings = async () => {
     if (window.confirm('Delete all portfolio ratings?')) {
-      clearAllRatings()
-      setRatings([])
-      setRatingStats(getRatingStats())
+      const { ratings: updated, stats } = await clearRatingsAdmin()
+      setRatings(updated)
+      setRatingStats(stats)
     }
   }
 
@@ -108,12 +130,24 @@ export default function Admin() {
             <p className="admin-welcome">Signed in as <strong>{adminUser}</strong></p>
           </div>
           <div className="admin-toolbar-actions">
+            <button type="button" onClick={loadAll} className="btn-ghost admin-btn-sm" disabled={loading}>
+              {loading ? 'Refreshing…' : '↻ Refresh'}
+            </button>
             <Link to="/" className="btn-ghost admin-btn-sm">← Website</Link>
             <button type="button" onClick={handleLogout} className="btn-grd admin-btn-sm">
               Logout
             </button>
           </div>
         </div>
+
+        {!storageOk && (
+          <div className="form-msg error show admin-config-notice admin-storage-notice">
+            <strong>Cloud storage not connected.</strong> Visitor messages and ratings will not appear here until you enable{' '}
+            <strong>Vercel KV</strong>: open your project on Vercel → <strong>Storage</strong> →{' '}
+            <strong>Create Database</strong> → choose <strong>KV</strong> → <strong>Connect</strong> → redeploy.
+            Showing local browser data only.
+          </div>
+        )}
 
         <div className="admin-stats">
           <div className="admin-stat-card">
@@ -145,7 +179,20 @@ export default function Admin() {
           >
             <i className="fas fa-star" /> Ratings ({ratings.length})
           </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === 'content' ? 'active' : ''}`}
+            onClick={() => setTab('content')}
+          >
+            <i className="fas fa-pen" /> Edit Site
+          </button>
         </div>
+
+        {loading && (
+          <p className="admin-loading-hint">Loading submissions from server…</p>
+        )}
+
+        {tab === 'content' && <AdminSiteContent />}
 
         {tab === 'messages' && (
           <>
@@ -156,11 +203,11 @@ export default function Admin() {
                 </button>
               </div>
             )}
-            {messages.length === 0 ? (
+            {messages.length === 0 && !loading ? (
               <div className="admin-empty">
                 <div className="admin-empty-icon">📬</div>
                 <h3>No messages yet</h3>
-                <p>Contact form submissions will appear here.</p>
+                <p>Contact form submissions from your live site will appear here.</p>
               </div>
             ) : (
               <div className="admin-msg-list">
@@ -237,11 +284,11 @@ export default function Admin() {
               </div>
             )}
 
-            {ratings.length === 0 ? (
+            {ratings.length === 0 && !loading ? (
               <div className="admin-empty">
                 <div className="admin-empty-icon">⭐</div>
                 <h3>No ratings yet</h3>
-                <p>Visitor ratings from the home page will appear here.</p>
+                <p>Visitor ratings from your live site will appear here.</p>
                 <Link to="/#rate-portfolio" className="btn-ghost" style={{ marginTop: '1rem', display: 'inline-flex' }}>
                   View rating section →
                 </Link>

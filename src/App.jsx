@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { SiteContentProvider } from './context/SiteContentContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './pages/Home'
@@ -20,6 +21,7 @@ function ScrollToTop() {
 
 function App() {
   return (
+    <SiteContentProvider>
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
@@ -39,6 +41,7 @@ function App() {
         } />
       </Routes>
     </BrowserRouter>
+    </SiteContentProvider>
   )
 }
 

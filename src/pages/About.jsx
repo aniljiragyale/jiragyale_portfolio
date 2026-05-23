@@ -1,15 +1,18 @@
+import PageBack from '../components/PageBack'
 import useScrollReveal from '../hooks/useScrollReveal'
 import anilImg from '../assets/anil image professional.jpeg'
-import resumePdf from '../assets/Anil_Jiragyale_Resume_ATS.pdf'
-import { SUMMARY, EXPERIENCE, EDUCATION, CERTIFICATIONS, SKILL_CATEGORIES } from '../data/profile'
+import { useSiteContent } from '../context/SiteContentContext'
 
 export default function About() {
+  const { content, resumeUrl, resumeFileName } = useSiteContent()
+  const { summary: SUMMARY, experience: EXPERIENCE, education: EDUCATION, certifications: CERTIFICATIONS, skillCategories: SKILL_CATEGORIES, about } = content
   const pageRef = useScrollReveal()
 
   return (
     <div ref={pageRef}>
       <div className="sec-wrap">
         <div className="container page-hero-wrap" id="about">
+          <PageBack />
           <div className="eyebrow rv">Who am I?</div>
           <h1 className="sec-title rv">About <span>Me</span></h1>
 
@@ -19,25 +22,20 @@ export default function About() {
             </div>
             <div>
               <p className="about-p rv">{SUMMARY}</p>
-              <p className="about-p rv d1">
-                I build production AI platforms with <strong>LangChain, LangGraph, Milvus, FastAPI, React.js, and Next.js</strong> — from RAG chatbots and semantic search to enterprise clinical data systems at <strong>GSK GCC</strong> and market intelligence tools at <strong>Rokkun Systems</strong>.
-              </p>
-              <p className="about-p rv d2">
-                Open to full-time roles in AI engineering, full stack development, and product-driven teams. I focus on reliable systems, clear APIs, and measurable impact.
-              </p>
+              {(about?.extraParagraphs || []).map((para, i) => (
+                <p key={i} className={`about-p rv d${i + 1}`}>{para}</p>
+              ))}
 
               <div className="rv d3" style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-                <a href={resumePdf} download="Anil_Jiragyale_Resume_ATS.pdf" className="btn-grd">
+                <a href={resumeUrl} download={resumeFileName} className="btn-grd">
                   Download Resume <i className="fas fa-download" style={{ marginLeft: '4px' }} />
                 </a>
               </div>
 
               <div className="tag-row rv d3">
-                <span className="tag">🤖 AI / LLM / RAG</span>
-                <span className="tag">🛠️ Full Stack</span>
-                <span className="tag">☁️ Azure &amp; AWS</span>
-                <span className="tag">📊 Power BI &amp; Data</span>
-                <span className="tag">🔧 FastAPI &amp; React</span>
+                {(about?.tags || []).map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
               </div>
             </div>
           </div>
