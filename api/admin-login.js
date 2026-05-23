@@ -1,17 +1,4 @@
-/**
- * Vercel serverless login — credentials stay on the server (not in the JS bundle).
- * Set ADMIN_USERNAME and ADMIN_PASSWORD in Vercel → Settings → Environment Variables, then redeploy.
- */
-function getExpectedCredentials() {
-  const username = (
-    process.env.ADMIN_USERNAME ||
-    process.env.VITE_ADMIN_USERNAME ||
-    ''
-  ).trim()
-  const password =
-    process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || ''
-  return { username, password }
-}
+import { resolveAdminCredentials } from '../shared/adminCredentials.js'
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
@@ -22,16 +9,7 @@ export default async function handler(req, res) {
   }
 
   const { username, password } = req.body || {}
-  const expected = getExpectedCredentials()
-
-  if (!expected.username || !expected.password) {
-    return res.status(503).json({
-      success: false,
-      error: 'not_configured',
-      message:
-        'Add ADMIN_USERNAME and ADMIN_PASSWORD in your hosting environment variables, then redeploy.',
-    })
-  }
+  const expected = resolveAdminCredentials(process.env)
 
   if (
     String(username || '').trim() === expected.username &&

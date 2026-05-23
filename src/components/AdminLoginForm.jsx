@@ -42,13 +42,7 @@ export default function AdminLoginForm({ onSuccess }) {
       return
     }
 
-    if (result.reason === 'not_configured') {
-      setError(
-        import.meta.env.PROD
-          ? 'Admin login is not set up on the server yet. In Vercel → your project → Settings → Environment Variables, add ADMIN_USERNAME and ADMIN_PASSWORD (same values as your .env), then Redeploy.'
-          : 'Admin login is not configured locally. Add VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD to your .env file, then restart npm run dev.'
-      )
-    } else if (result.reason === 'invalid') {
+    if (result.reason === 'invalid') {
       setError('Invalid username or password.')
     } else {
       setError('Could not sign in. Check your connection and try again.')
