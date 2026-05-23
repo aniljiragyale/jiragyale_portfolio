@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { areAdminCredentialsConfigured, validateAdminLogin } from '../config/adminAuth'
+import { areAdminCredentialsConfigured, loginAdmin } from '../config/adminAuth'
 
 function setAdminSession(user) {
   const payload = { at: Date.now(), user }
@@ -19,30 +19,41 @@ export default function AdminLoginForm({ onSuccess }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const credentialsReady = areAdminCredentialsConfigured()
+  const [loading, setLoading] = useState(false)
+  const showLocalSetupNotice = !import.meta.env.PROD && !areAdminCredentialsConfigured()
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setError('')
-
-    if (!credentialsReady) {
-      setError('Admin login is not configured on this server. Add VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD, then redeploy.')
-      return
-    }
 
     if (!username.trim() || !password) {
       setError('Please enter username and password.')
       return
     }
 
-    if (validateAdminLogin(username, password)) {
+    setLoading(true)
+    const result = await loginAdmin(username, password)
+    setLoading(false)
+
+    if (result.ok) {
       setAdminSession(username.trim())
       setPassword('')
       onSuccess(username.trim())
-    } else {
-      setError('Invalid username or password.')
-      setPassword('')
+      return
     }
+
+    if (result.reason === 'not_configured') {
+      setError(
+        import.meta.env.PROD
+          ? 'Admin login is not set up on the server yet. In Vercel → your project → Settings → Environment Variables, add ADMIN_USERNAME and ADMIN_PASSWORD (same values as your .env), then Redeploy.'
+          : 'Admin login is not configured locally. Add VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD to your .env file, then restart npm run dev.'
+      )
+    } else if (result.reason === 'invalid') {
+      setError('Invalid username or password.')
+    } else {
+      setError('Could not sign in. Check your connection and try again.')
+    }
+    setPassword('')
   }
 
   return (
@@ -68,9 +79,9 @@ export default function AdminLoginForm({ onSuccess }) {
         </div>
       </div>
 
-      {!credentialsReady && (
+      {showLocalSetupNotice && (
         <div className="form-msg error show admin-config-notice">
-          Admin credentials are missing in this build. For local dev, set them in <code>.env</code>. For your live site, add the same variables in Vercel/hosting settings and redeploy.
+          For local dev, add <code>VITE_ADMIN_USERNAME</code> and <code>VITE_ADMIN_PASSWORD</code> to your <code>.env</code> file, then restart the dev server.
         </div>
       )}
 
@@ -109,8 +120,8 @@ export default function AdminLoginForm({ onSuccess }) {
 
         {error && <div className="form-msg error show">{error}</div>}
 
-        <button type="submit" className="fsub admin-signin-btn" disabled={!credentialsReady}>
-          Sign In to Admin Panel ✦
+        <button type="submit" className="fsub admin-signin-btn" disabled={loading}>
+          {loading ? 'Signing in…' : 'Sign In to Admin Panel ✦'}
         </button>
       </form>
 
