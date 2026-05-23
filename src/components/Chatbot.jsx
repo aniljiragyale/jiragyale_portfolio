@@ -291,7 +291,6 @@ export default function Chatbot() {
             ref={panelRef}
           >
             <i className="fas fa-robot" />
-            <span className="chatbot-toggle-text">Ask AI</span>
           </button>
         </div>
       )}
