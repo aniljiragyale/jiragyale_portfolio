@@ -4,15 +4,17 @@ import PageBack from '../components/PageBack'
 import useScrollReveal from '../hooks/useScrollReveal'
 import { useSiteContent } from '../context/SiteContentContext'
 import { submitMessage } from '../utils/portfolioApi'
+import { CONTACT as DEFAULT_CONTACT } from '../data/profile'
 
-function getEmailJsConfig() {
+function getEmailJsConfig(contact = DEFAULT_CONTACT) {
+  const emailjsCfg = contact?.emailjs ?? DEFAULT_CONTACT.emailjs
   return {
     serviceId:
-      import.meta.env.VITE_EMAILJS_SERVICE_ID || CONTACT.emailjs.serviceId,
+      import.meta.env.VITE_EMAILJS_SERVICE_ID || emailjsCfg.serviceId,
     templateId:
-      import.meta.env.VITE_EMAILJS_TEMPLATE_ID || CONTACT.emailjs.templateId,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_ID || emailjsCfg.templateId,
     publicKey:
-      import.meta.env.VITE_EMAILJS_PUBLIC_KEY || CONTACT.emailjs.publicKey,
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY || emailjsCfg.publicKey,
   }
 }
 
@@ -34,7 +36,7 @@ export default function Contact() {
     type: '',
   })
 
-  const { serviceId, templateId, publicKey } = getEmailJsConfig()
+  const { serviceId, templateId, publicKey } = getEmailJsConfig(CONTACT)
 
   useEffect(() => {
     if (publicKey) {
@@ -134,11 +136,11 @@ export default function Contact() {
       <div className="sec-wrap">
         <div className="container page-hero-wrap" id="contact">
           <PageBack />
-          <div className="eyebrow rv">Let's Connect</div>
-          <h1 className="sec-title rv">Get In <span>Touch</span></h1>
+          <div className="eyebrow rv on">Let's Connect</div>
+          <h1 className="sec-title rv on">Get In <span>Touch</span></h1>
 
           <div className="contact-grid">
-            <div className="rv">
+            <div className="rv on">
               <p className="contact-intro">
                 Actively seeking full-time roles in <strong>AI Engineering</strong>, <strong>Full Stack Development</strong>, and product-driven companies. Based in {CONTACT.location}.
               </p>
@@ -174,7 +176,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="rv d1">
+            <div className="rv d1 on">
               <div className="contact-form-card">
                 <form ref={formRef} id="contactForm" className="contact-form" onSubmit={handleSubmit}>
                   <div>

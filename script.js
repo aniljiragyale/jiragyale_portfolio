@@ -16,19 +16,25 @@ window.addEventListener('scroll', () => {
 });
 
 // ══════ REVEAL ANIMATIONS ══════
-const obs = new IntersectionObserver(entries => {
+const revealObs = new IntersectionObserver(entries => {
   entries.forEach(e => {
-    if(e.isIntersecting) {
-      e.target.classList.add('on');
-    }
+    if (e.isIntersecting) e.target.classList.add('on');
   });
-}, { threshold: 0.07 });
+}, { threshold: 0.05 });
 
-document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+function revealInView(el) {
+  const rect = el.getBoundingClientRect();
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  if (rect.top < vh * 0.95 && rect.bottom > 0) el.classList.add('on');
+  revealObs.observe(el);
+}
+
+document.querySelectorAll('.rv').forEach(revealInView);
+requestAnimationFrame(() => document.querySelectorAll('.rv').forEach(revealInView));
 
 // ══════ EMAIL.JS CONFIGURATION ══════
 // Initialize EmailJS with your public key
-emailjs.init("YOUR_PUBLIC_KEY_HERE");
+emailjs.init('EfFovMSVNZE-iwywJ');
 
 // ══════ CONTACT FORM HANDLING ══════
 const contactForm = document.getElementById('contactForm');
@@ -60,12 +66,12 @@ if (contactForm) {
 
     try {
       // Send email via EmailJS
-      const response = await emailjs.send('service_id', 'template_id', {
-        from_name: name,
-        from_email: email,
-        subject: subject,
-        message: message,
-        reply_to: email
+      const response = await emailjs.send('service_t7zf2hg', 'template_5xqoia9', {
+        name,
+        email,
+        subject,
+        message: `Subject: ${subject}\n\n${message}`,
+        to_email: 'aniljiragyale07@gmail.com',
       });
 
       if (response.status === 200) {
