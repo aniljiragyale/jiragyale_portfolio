@@ -210,7 +210,13 @@ export default function Chatbot() {
       )}
 
       {isOpen && (
-          <div className="chatbot-window" ref={panelRef} role="dialog" aria-label="AI Assistant chat" aria-modal="true">
+          <div
+            className="chatbot-window chatbot-window-center"
+            ref={panelRef}
+            role="dialog"
+            aria-label="AI Assistant chat"
+            aria-modal="true"
+          >
             <div className="chatbot-header">
               <div className="chatbot-avatar">
                 <i className="fas fa-robot" />
