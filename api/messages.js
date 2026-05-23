@@ -1,6 +1,7 @@
 import { requireAdmin } from './lib/adminToken.js'
 import {
-  isKvConfigured,
+  isStorageConfigured,
+  getStorageMode,
   getMessages,
   addMessage,
   setMessages,
@@ -14,12 +15,12 @@ function json(res, status, body) {
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
 
-  if (!isKvConfigured()) {
+  if (!isStorageConfigured()) {
     return json(res, 503, {
       success: false,
       error: 'storage_not_configured',
       message:
-        'Connect Vercel KV: Project → Storage → Create Database → KV → Connect, then redeploy.',
+        'Connect Vercel KV: Dashboard → Storage → Create Database → KV (or Redis) → Connect to this project → Redeploy. Submissions are stored in Excel automatically.',
     })
   }
 
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       if (!requireAdmin(req, res)) return
       const messages = await getMessages()
-      return json(res, 200, messages)
+      return json(res, 200, { messages, storage: getStorageMode() })
     }
 
     if (req.method === 'POST') {
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
         date: date || new Date().toLocaleString(),
       }
       await addMessage(entry)
-      return json(res, 201, { success: true, entry })
+      return json(res, 201, { success: true, entry, storage: getStorageMode() })
     }
 
     if (req.method === 'PUT') {

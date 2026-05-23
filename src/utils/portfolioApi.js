@@ -71,26 +71,49 @@ export async function submitMessage(payload) {
   return { ok: true, entry, cloud: false }
 }
 
+function parseMessagesPayload(data) {
+  if (Array.isArray(data)) return { messages: data, storageMode: 'kv' }
+  return { messages: data.messages || [], storageMode: data.storage || 'unknown' }
+}
+
 export async function fetchMessagesAdmin() {
   try {
     const res = await fetch('/api/messages', { headers: authHeaders() })
     if (res.ok) {
-      const remote = await res.json()
-      if (import.meta.env.DEV) {
-        return mergeById(remote, readLocal(MESSAGES_KEY))
-      }
-      return remote
+      const data = await res.json()
+      const { messages: remote, storageMode } = parseMessagesPayload(data)
+      const messages = import.meta.env.DEV
+        ? mergeById(remote, readLocal(MESSAGES_KEY))
+        : remote
+      return { messages, storageOk: true, storageMode }
     }
     if (res.status === 401) {
-      return { error: 'unauthorized' }
+      return { error: 'unauthorized', messages: [], storageOk: false }
     }
     if (res.status === 503) {
-      return { error: 'storage_not_configured', data: readLocal(MESSAGES_KEY) }
+      return {
+        error: 'storage_not_configured',
+        messages: readLocal(MESSAGES_KEY),
+        storageOk: false,
+      }
     }
   } catch (err) {
     console.warn('fetchMessagesAdmin:', err)
   }
-  return readLocal(MESSAGES_KEY)
+  return { messages: readLocal(MESSAGES_KEY), storageOk: false, storageMode: 'local' }
+}
+
+/** Download portfolio-submissions.xlsx (Messages + Ratings sheets) */
+export async function downloadExcelExport() {
+  const res = await fetch('/api/export-excel', { headers: authHeaders() })
+  if (!res.ok) throw new Error('Could not download Excel file')
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `portfolio-submissions-${new Date().toISOString().slice(0, 10)}.xlsx`
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 export async function saveMessagesAdmin(messages) {
@@ -208,6 +231,7 @@ export async function fetchRatingsAdmin() {
         ratings,
         stats: data.stats || computeStatsLocal(ratings),
         storageOk: true,
+        storageMode: data.storage || 'unknown',
       }
     }
     if (res.status === 503) {

@@ -10,6 +10,7 @@ import {
   deleteRatingAdmin,
   clearRatingsAdmin,
   clearAdminApiToken,
+  downloadExcelExport,
 } from '../utils/portfolioApi'
 
 function StarDisplay({ count }) {
@@ -31,30 +32,39 @@ export default function Admin() {
   const [ratingStats, setRatingStats] = useState({ count: 0, average: 0, distribution: {} })
   const [loading, setLoading] = useState(false)
   const [storageOk, setStorageOk] = useState(true)
+  const [storageMode, setStorageMode] = useState('')
+  const [excelDownloading, setExcelDownloading] = useState(false)
 
   const loadAll = useCallback(async () => {
     setLoading(true)
     const msgResult = await fetchMessagesAdmin()
-    if (Array.isArray(msgResult)) {
-      setMessages(msgResult)
-      setStorageOk(true)
-    } else if (msgResult?.error === 'storage_not_configured') {
-      setMessages(msgResult.data || [])
-      setStorageOk(false)
-    } else if (msgResult?.error === 'unauthorized') {
+    if (msgResult?.error === 'unauthorized') {
       setIsAuthorized(false)
       setLoading(false)
       return
-    } else {
-      setMessages([])
     }
+    setMessages(msgResult.messages || [])
+    setStorageOk(msgResult.storageOk !== false)
+    if (msgResult.storageMode) setStorageMode(msgResult.storageMode)
 
     const ratingResult = await fetchRatingsAdmin()
     setRatings(ratingResult.ratings || [])
     setRatingStats(ratingResult.stats || { count: 0, average: 0, distribution: {} })
     if (ratingResult.storageOk === false) setStorageOk(false)
+    if (ratingResult.storageMode) setStorageMode(ratingResult.storageMode)
     setLoading(false)
   }, [])
+
+  const handleDownloadExcel = async () => {
+    setExcelDownloading(true)
+    try {
+      await downloadExcelExport()
+    } catch {
+      window.alert('Could not download Excel. Check that you are logged in and cloud storage is connected.')
+    } finally {
+      setExcelDownloading(false)
+    }
+  }
 
   useEffect(() => {
     const authStatus =
@@ -133,6 +143,15 @@ export default function Admin() {
             <button type="button" onClick={loadAll} className="btn-ghost admin-btn-sm" disabled={loading}>
               {loading ? 'Refreshing…' : '↻ Refresh'}
             </button>
+            <button
+              type="button"
+              onClick={handleDownloadExcel}
+              className="btn-ghost admin-btn-sm"
+              disabled={excelDownloading}
+              title="Download all messages and ratings as Excel"
+            >
+              {excelDownloading ? '…' : '📥 Excel'}
+            </button>
             <Link to="/" className="btn-ghost admin-btn-sm">← Website</Link>
             <button type="button" onClick={handleLogout} className="btn-grd admin-btn-sm">
               Logout
@@ -140,12 +159,18 @@ export default function Admin() {
           </div>
         </div>
 
+        {storageOk && storageMode === 'excel' && (
+          <div className="form-msg success show admin-storage-notice">
+            <strong>Excel storage active.</strong> Every contact form and rating is saved to{' '}
+            <code>portfolio-submissions.xlsx</code> in the cloud. Use <strong>📥 Excel</strong> to open it in Microsoft Excel.
+          </div>
+        )}
+
         {!storageOk && (
           <div className="form-msg error show admin-config-notice admin-storage-notice">
-            <strong>Cloud storage not connected.</strong> Visitor messages and ratings will not appear here until you enable{' '}
-            <strong>Vercel KV</strong>: open your project on Vercel → <strong>Storage</strong> →{' '}
-            <strong>Create Database</strong> → choose <strong>KV</strong> → <strong>Connect</strong> → redeploy.
-            Showing local browser data only.
+            <strong>Excel cloud storage not connected.</strong> On Vercel open your project → <strong>Storage</strong> →{' '}
+            <strong>Create Database</strong> → choose <strong>KV</strong> (or Upstash Redis) → <strong>Connect</strong> →{' '}
+            <strong>Redeploy</strong>. Then every form and rating saves to Excel and appears here. Until then, only this browser’s local data is shown.
           </div>
         )}
 

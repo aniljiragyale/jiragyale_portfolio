@@ -1,6 +1,7 @@
 import { requireAdmin, verifyAdminToken } from './lib/adminToken.js'
 import {
-  isKvConfigured,
+  isStorageConfigured,
+  getStorageMode,
   getRatings,
   addRating,
   setRatings,
@@ -15,12 +16,12 @@ function json(res, status, body) {
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
 
-  if (!isKvConfigured()) {
+  if (!isStorageConfigured()) {
     return json(res, 503, {
       success: false,
       error: 'storage_not_configured',
       message:
-        'Connect Vercel KV: Project → Storage → Create Database → KV → Connect, then redeploy.',
+        'Connect Vercel KV: Dashboard → Storage → Create Database → KV (or Redis) → Connect to this project → Redeploy. Submissions are stored in Excel automatically.',
     })
   }
 

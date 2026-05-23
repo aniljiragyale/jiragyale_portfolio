@@ -1,78 +1,100 @@
 import { kv } from '@vercel/kv'
+import {
+  isExcelStorageReady,
+  isBlobConfigured,
+  isKvConfigured,
+  getMessagesFromExcel,
+  getRatingsFromExcel,
+  addMessageToExcel,
+  addRatingToExcel,
+  setMessagesInExcel,
+  setRatingsInExcel,
+  deleteMessageFromExcel,
+  deleteRatingFromExcel,
+  buildExcelBuffer,
+} from './excelStore.js'
 
 const MESSAGES_KEY = 'portfolio:messages'
 const RATINGS_KEY = 'portfolio:ratings'
 const MAX_ITEMS = 250
 
 export function isKvConfigured() {
-  return Boolean(
-    process.env.KV_REST_API_URL &&
-      process.env.KV_REST_API_TOKEN
-  )
+  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
 }
 
-async function readList(key) {
-  if (!isKvConfigured()) return null
+export function isStorageConfigured() {
+  return isExcelStorageReady()
+}
+
+export function getStorageMode() {
+  if (!isStorageConfigured()) return 'none'
+  return 'excel'
+}
+
+async function readLegacyKvList(key) {
+  if (!isKvConfigured()) return []
   try {
     const data = await kv.get(key)
     return Array.isArray(data) ? data : []
-  } catch (err) {
-    console.error('KV read error:', err)
-    return null
+  } catch {
+    return []
   }
 }
 
-async function writeList(key, list) {
-  if (!isKvConfigured()) {
-    throw new Error('KV_NOT_CONFIGURED')
-  }
-  await kv.set(key, list.slice(0, MAX_ITEMS))
+/** Import old JSON rows into Excel once, if Excel sheets are empty */
+async function migrateLegacyJsonToExcel() {
+  const messages = await getMessagesFromExcel()
+  const ratings = await getRatingsFromExcel()
+  if (messages.length > 0 || ratings.length > 0) return
+
+  const legacyMessages = await readLegacyKvList(MESSAGES_KEY)
+  const legacyRatings = await readLegacyKvList(RATINGS_KEY)
+  if (!legacyMessages.length && !legacyRatings.length) return
+
+  if (legacyMessages.length) await setMessagesInExcel(legacyMessages)
+  if (legacyRatings.length) await setRatingsInExcel(legacyRatings)
 }
 
 export async function getMessages() {
-  return (await readList(MESSAGES_KEY)) ?? []
+  if (!isStorageConfigured()) return []
+  await migrateLegacyJsonToExcel()
+  return getMessagesFromExcel()
 }
 
 export async function addMessage(entry) {
-  const list = (await readList(MESSAGES_KEY)) ?? []
-  const next = [entry, ...list.filter((m) => m.id !== entry.id)].slice(0, MAX_ITEMS)
-  await writeList(MESSAGES_KEY, next)
-  return next
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return addMessageToExcel(entry)
 }
 
 export async function setMessages(messages) {
-  await writeList(MESSAGES_KEY, messages)
-  return messages
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return setMessagesInExcel(messages)
 }
 
 export async function deleteMessage(id) {
-  const list = (await readList(MESSAGES_KEY)) ?? []
-  const next = list.filter((m) => m.id !== id)
-  await writeList(MESSAGES_KEY, next)
-  return next
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return deleteMessageFromExcel(id)
 }
 
 export async function getRatings() {
-  return (await readList(RATINGS_KEY)) ?? []
+  if (!isStorageConfigured()) return []
+  await migrateLegacyJsonToExcel()
+  return getRatingsFromExcel()
 }
 
 export async function addRating(entry) {
-  const list = (await readList(RATINGS_KEY)) ?? []
-  const next = [entry, ...list.filter((r) => r.id !== entry.id)].slice(0, MAX_ITEMS)
-  await writeList(RATINGS_KEY, next)
-  return next
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return addRatingToExcel(entry)
 }
 
 export async function setRatings(ratings) {
-  await writeList(RATINGS_KEY, ratings)
-  return ratings
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return setRatingsInExcel(ratings)
 }
 
 export async function deleteRating(id) {
-  const list = (await readList(RATINGS_KEY)) ?? []
-  const next = list.filter((r) => r.id !== id)
-  await writeList(RATINGS_KEY, next)
-  return next
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return deleteRatingFromExcel(id)
 }
 
 export function computeRatingStats(ratings) {
@@ -90,3 +112,11 @@ export function computeRatingStats(ratings) {
     distribution,
   }
 }
+
+export async function buildExportBuffer() {
+  const messages = await getMessages()
+  const ratings = await getRatings()
+  return buildExcelBuffer(messages, ratings)
+}
+
+export { isBlobConfigured }
