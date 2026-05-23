@@ -147,6 +147,11 @@ export default function Chatbot() {
   }, [messages, isTyping])
 
   useEffect(() => {
+    document.body.classList.toggle('chatbot-open', isOpen)
+    return () => document.body.classList.remove('chatbot-open')
+  }, [isOpen])
+
+  useEffect(() => {
     if (!isOpen) return
 
     const onKeyDown = (e) => {
@@ -268,16 +273,18 @@ export default function Chatbot() {
           </div>
         )}
 
-        <button
-          type="button"
-          className={`chatbot-toggle ${isOpen ? 'open' : ''}`}
-          onClick={() => setIsOpen(!isOpen)}
-          title="AI Assistant"
-          aria-label={isOpen ? 'Close chat' : 'Open chat'}
-          ref={!isOpen ? panelRef : undefined}
-        >
-          {isOpen ? <i className="fas fa-times" /> : <i className="fas fa-robot" />}
-        </button>
+        {!isOpen && (
+          <button
+            type="button"
+            className="chatbot-toggle"
+            onClick={() => setIsOpen(true)}
+            title="AI Assistant"
+            aria-label="Open chat"
+            ref={panelRef}
+          >
+            <i className="fas fa-robot" />
+          </button>
+        )}
       </div>
     </>
   )

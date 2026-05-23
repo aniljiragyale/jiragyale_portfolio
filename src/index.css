@@ -349,7 +349,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Desktop hero — name stacks, photo fully visible */
-@media (min-width: 961px) {
+@media (min-width: 1025px) {
   .hero-section {
     padding-top: 7.5rem;
     gap: 2rem;
@@ -1794,19 +1794,53 @@ a { color: inherit; text-decoration: none; }
   .site-footer { padding: 2.5rem 2.5rem; }
 }
 
-/* Tablet landscape & small laptop */
-@media (max-width: 960px) {
+/* Tablet, phone, and mobile “desktop site” mode (≤1024px) */
+@media (max-width: 1024px) {
+  html, body, #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   .hero-section {
     min-height: auto;
-    padding: 6rem 1.5rem 2.5rem;
+    padding: 6rem 1.25rem 2rem;
     text-align: center;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .hero-top {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.25rem;
   }
   .hero-visual { order: -1; }
+  .hero-name-full {
+    white-space: normal;
+    font-size: clamp(1.65rem, 5vw, 2.75rem);
+    letter-spacing: -1.2px;
+    line-height: 1.05;
+    max-width: 100%;
+  }
+  .hero-name-full em {
+    display: block;
+    margin-top: 0.06em;
+  }
+  .container,
+  .sec-wrap,
+  .hero-section,
+  .hero-content,
+  .hero-top {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+/* Tablet landscape & small laptop */
+@media (max-width: 960px) {
+  .hero-section {
+    padding: 6rem 1.5rem 2.5rem;
+    gap: 1.5rem;
+  }
+  .hero-top {
+    gap: 1.5rem;
+  }
   .photo-container { width: min(280px, 75vw); margin: 0 auto; }
   .photo-card { left: -8px; }
   .photo-card2 { right: -8px; }
@@ -2171,13 +2205,8 @@ a { color: inherit; text-decoration: none; }
   .admin-login-page { padding: 3.5rem 1rem 1rem; }
 }
 
-/* Prevent horizontal overflow on all small screens */
-@media (max-width: 768px) {
-  body, html { overflow-x: hidden; max-width: 100vw; }
-  .sec-wrap, .container, .hero-section, .hero-content {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
+/* Chatbot + touch layouts (phones, tablets, mobile desktop mode) */
+@media (max-width: 1024px) {
   .hero-bg-orb, .hero-bg-orb2 {
     width: 280px;
     height: 280px;
@@ -2188,18 +2217,20 @@ a { color: inherit; text-decoration: none; }
     bottom: max(16px, env(safe-area-inset-bottom));
     left: auto;
     width: auto;
-    display: block;
+    z-index: 1001;
   }
   .chatbot-window {
     position: fixed;
-    left: max(12px, env(safe-area-inset-left));
-    right: max(12px, env(safe-area-inset-right));
-    bottom: calc(76px + env(safe-area-inset-bottom));
+    top: max(10px, env(safe-area-inset-top));
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
+    bottom: max(10px, env(safe-area-inset-bottom));
     width: auto;
     max-width: none;
-    height: min(70dvh, 520px);
-    border-radius: 16px;
-    z-index: 1001;
+    height: auto;
+    border-radius: 18px;
+    z-index: 1002;
+    transform-origin: center bottom;
   }
   .chatbot-chips {
     flex-wrap: nowrap;
@@ -2226,11 +2257,21 @@ a { color: inherit; text-decoration: none; }
     width: 44px;
     height: 44px;
   }
-  .chatbot-toggle {
-    position: relative;
-    z-index: 1002;
+}
+
+/* Prevent horizontal overflow on small screens */
+@media (max-width: 768px) {
+  body, html { overflow-x: hidden; max-width: 100vw; }
+  .sec-wrap, .container, .hero-section, .hero-content {
+    max-width: 100%;
+    overflow-x: hidden;
   }
   .page-back { margin-bottom: 0.85rem; }
+}
+
+body.chatbot-open {
+  overflow: hidden;
+  touch-action: none;
 }
 
 /* ══ TERMINAL SKILLS SHOWCASE ══ */
@@ -2457,7 +2498,7 @@ a { color: inherit; text-decoration: none; }
 .chatbot-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 1000;
   background: rgba(4,11,22,0.55);
   backdrop-filter: blur(3px);
   border: none;
