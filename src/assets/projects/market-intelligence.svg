@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1829"/>
+      <stop offset="100%" stop-color="#1a365d"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#63b3ed"/>
+      <stop offset="100%" stop-color="#4fd1c5"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <circle cx="520" cy="80" r="120" fill="rgba(99,179,237,0.12)"/>
+  <circle cx="100" cy="300" r="90" fill="rgba(79,209,197,0.1)"/>
+  <rect x="48" y="48" width="544" height="200" rx="16" fill="rgba(4,11,22,0.55)" stroke="rgba(99,179,237,0.25)" stroke-width="1"/>
+  <rect x="72" y="88" width="180" height="12" rx="6" fill="url(#accent)" opacity="0.9"/>
+  <rect x="72" y="116" width="320" height="8" rx="4" fill="rgba(226,232,240,0.35)"/>
+  <rect x="72" y="136" width="280" height="8" rx="4" fill="rgba(226,232,240,0.2)"/>
+  <rect x="72" y="168" width="120" height="36" rx="8" fill="rgba(246,173,85,0.2)" stroke="rgba(246,173,85,0.5)" stroke-width="1"/>
+  <text x="132" y="192" text-anchor="middle" fill="#f6ad55" font-family="Arial,sans-serif" font-size="13" font-weight="700">RAG</text>
+  <rect x="210" y="168" width="120" height="36" rx="8" fill="rgba(99,179,237,0.15)" stroke="rgba(99,179,237,0.4)" stroke-width="1"/>
+  <text x="270" y="192" text-anchor="middle" fill="#63b3ed" font-family="Arial,sans-serif" font-size="13" font-weight="700">Search</text>
+  <rect x="348" y="168" width="120" height="36" rx="8" fill="rgba(79,209,197,0.15)" stroke="rgba(79,209,197,0.4)" stroke-width="1"/>
+  <text x="408" y="192" text-anchor="middle" fill="#4fd1c5" font-family="Arial,sans-serif" font-size="13" font-weight="700">API</text>
+  <text x="48" y="310" fill="#f6ad55" font-family="Arial,sans-serif" font-size="22" font-weight="800">Market Intelligence</text>
+  <text x="48" y="336" fill="#a0aec0" font-family="Arial,sans-serif" font-size="14">AI/ML · Enterprise Platform</text>
+</svg>

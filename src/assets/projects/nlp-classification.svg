@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a0a2e"/>
+      <stop offset="100%" stop-color="#0b1829"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <rect x="80" y="70" width="200" height="120" rx="12" fill="rgba(183,148,244,0.12)" stroke="rgba(183,148,244,0.35)" stroke-width="1"/>
+  <text x="100" y="110" fill="#b794f4" font-family="monospace" font-size="13">"classify</text>
+  <text x="100" y="135" fill="#e2e8f0" font-family="monospace" font-size="13">  this text"</text>
+  <text x="100" y="165" fill="#4fd1c5" font-family="monospace" font-size="13">’ label: AI</text>
+  <rect x="340" y="70" width="220" height="120" rx="12" fill="rgba(4,11,22,0.6)" stroke="rgba(246,173,85,0.4)" stroke-width="1"/>
+  <text x="360" y="110" fill="#f6ad55" font-family="Arial,sans-serif" font-size="28" font-weight="800">94%</text>
+  <text x="360" y="140" fill="#a0aec0" font-family="Arial,sans-serif" font-size="13">Accuracy</text>
+  <text x="360" y="168" fill="#718096" font-family="Arial,sans-serif" font-size="12">Transformer Model</text>
+  <rect x="80" y="220" width="480" height="50" rx="10" fill="rgba(99,179,237,0.08)" stroke="rgba(99,179,237,0.2)" stroke-width="1"/>
+  <text x="100" y="252" fill="#63b3ed" font-family="Arial,sans-serif" font-size="13" font-weight="600">PyTorch · Transformers · Kubernetes · MLflow</text>
+  <text x="48" y="310" fill="#f6ad55" font-family="Arial,sans-serif" font-size="22" font-weight="800">NLP Text Classification</text>
+  <text x="48" y="336" fill="#a0aec0" font-family="Arial,sans-serif" font-size="14">AI/ML · ML Model</text>
+</svg>

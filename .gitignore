@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment & secrets (never commit)
+.env
+.env.local
+.env.*.local
+.env.admin
+.env.production
+.env.development
+
+# Admin credentials file (copy from .env.admin.example)
+credentials.local.json
+
+# Logs & debug
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor & OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp / clone folders
+_portfolio-ref/

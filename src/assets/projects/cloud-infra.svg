@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1445"/>
+      <stop offset="100%" stop-color="#1a365d"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <ellipse cx="320" cy="130" rx="100" ry="55" fill="rgba(99,179,237,0.15)" stroke="rgba(99,179,237,0.4)" stroke-width="1.5"/>
+  <ellipse cx="260" cy="145" rx="70" ry="40" fill="rgba(79,209,197,0.1)" stroke="rgba(79,209,197,0.3)" stroke-width="1"/>
+  <ellipse cx="380" cy="145" rx="70" ry="40" fill="rgba(79,209,197,0.1)" stroke="rgba(79,209,197,0.3)" stroke-width="1"/>
+  <rect x="120" y="210" width="90" height="60" rx="8" fill="rgba(4,11,22,0.6)" stroke="rgba(246,173,85,0.4)" stroke-width="1"/>
+  <text x="165" y="248" text-anchor="middle" fill="#f6ad55" font-family="Arial,sans-serif" font-size="12" font-weight="700">AWS</text>
+  <rect x="240" y="210" width="90" height="60" rx="8" fill="rgba(4,11,22,0.6)" stroke="rgba(99,179,237,0.4)" stroke-width="1"/>
+  <text x="285" y="248" text-anchor="middle" fill="#63b3ed" font-family="Arial,sans-serif" font-size="12" font-weight="700">Docker</text>
+  <rect x="360" y="210" width="90" height="60" rx="8" fill="rgba(4,11,22,0.6)" stroke="rgba(183,148,244,0.4)" stroke-width="1"/>
+  <text x="405" y="248" text-anchor="middle" fill="#b794f4" font-family="Arial,sans-serif" font-size="12" font-weight="700">K8s</text>
+  <rect x="480" y="210" width="90" height="60" rx="8" fill="rgba(4,11,22,0.6)" stroke="rgba(79,209,197,0.4)" stroke-width="1"/>
+  <text x="525" y="248" text-anchor="middle" fill="#4fd1c5" font-family="Arial,sans-serif" font-size="12" font-weight="700">CI/CD</text>
+  <text x="48" y="310" fill="#f6ad55" font-family="Arial,sans-serif" font-size="22" font-weight="800">Cloud Infrastructure</text>
+  <text x="48" y="336" fill="#a0aec0" font-family="Arial,sans-serif" font-size="14">Infrastructure · Terraform · DevOps</text>
+</svg>
