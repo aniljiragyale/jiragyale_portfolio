@@ -4,7 +4,7 @@ import { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS } from '../data/profile'
 import { PROJECTS } from '../data/projects'
 
 const CHIPS = [
-  { label: '💻 Core Skills', query: 'What are your core skills?' },
+  { label: '💻 Skills', query: 'What are your core skills?' },
   { label: '💼 Experience', query: 'Tell me about your work experience' },
   { label: '🚀 Projects', query: 'Show me your key projects' },
   { label: '📞 Contact', query: 'How can I contact you?' },
@@ -154,14 +154,16 @@ export default function Chatbot() {
     }
 
     const onPointerDown = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        setIsOpen(false)
+      const target = e.target
+      if (target instanceof Element && target.closest('.chatbot-window, .chatbot-toggle')) {
+        return
       }
+      setIsOpen(false)
     }
 
     document.addEventListener('keydown', onKeyDown)
     document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('touchstart', onPointerDown)
+    document.addEventListener('touchstart', onPointerDown, { passive: true })
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
@@ -194,21 +196,9 @@ export default function Chatbot() {
         />
       )}
 
-      <div className="chatbot-wrapper" ref={panelRef}>
-        {!isOpen && <span className="chatbot-toggle-label">Ask about Anil</span>}
-
-        <button
-          type="button"
-          className={`chatbot-toggle ${isOpen ? 'open' : ''}`}
-          onClick={() => setIsOpen(!isOpen)}
-          title="AI Assistant"
-          aria-label={isOpen ? 'Close chat' : 'Open chat'}
-        >
-          {isOpen ? <i className="fas fa-times" /> : <i className="fas fa-robot" />}
-        </button>
-
+      <div className="chatbot-wrapper">
         {isOpen && (
-          <div className="chatbot-window" role="dialog" aria-label="AI Assistant chat">
+          <div className="chatbot-window" ref={panelRef} role="dialog" aria-label="AI Assistant chat">
             <div className="chatbot-header">
               <div className="chatbot-avatar">
                 <i className="fas fa-robot" />
@@ -277,6 +267,17 @@ export default function Chatbot() {
             </form>
           </div>
         )}
+
+        <button
+          type="button"
+          className={`chatbot-toggle ${isOpen ? 'open' : ''}`}
+          onClick={() => setIsOpen(!isOpen)}
+          title="AI Assistant"
+          aria-label={isOpen ? 'Close chat' : 'Open chat'}
+          ref={!isOpen ? panelRef : undefined}
+        >
+          {isOpen ? <i className="fas fa-times" /> : <i className="fas fa-robot" />}
+        </button>
       </div>
     </>
   )
