@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import emailjs from '@emailjs/browser'
 import PageBack from '../components/PageBack'
-import useScrollReveal from '../hooks/useScrollReveal'
 import { useSiteContent } from '../context/SiteContentContext'
 import { submitMessage } from '../utils/portfolioApi'
 import { CONTACT as DEFAULT_CONTACT } from '../data/profile'
@@ -20,8 +19,14 @@ function getEmailJsConfig(contact = DEFAULT_CONTACT) {
 
 export default function Contact() {
   const { content } = useSiteContent()
-  const CONTACT = content.contact
-  const pageRef = useScrollReveal()
+  const CONTACT = {
+    ...DEFAULT_CONTACT,
+    ...content?.contact,
+    emailjs: {
+      ...DEFAULT_CONTACT.emailjs,
+      ...content?.contact?.emailjs,
+    },
+  }
   const formRef = useRef(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -132,15 +137,15 @@ export default function Contact() {
   )}`
 
   return (
-    <div ref={pageRef}>
+    <div>
       <div className="sec-wrap">
         <div className="container page-hero-wrap" id="contact">
           <PageBack />
-          <div className="eyebrow rv on">Let's Connect</div>
-          <h1 className="sec-title rv on">Get In <span>Touch</span></h1>
+          <div className="eyebrow">Let's Connect</div>
+          <h1 className="sec-title">Get In <span>Touch</span></h1>
 
           <div className="contact-grid">
-            <div className="rv on">
+            <div>
               <p className="contact-intro">
                 Actively seeking full-time roles in <strong>AI Engineering</strong>, <strong>Full Stack Development</strong>, and product-driven companies. Based in {CONTACT.location}.
               </p>
@@ -176,7 +181,7 @@ export default function Contact() {
               </div>
             </div>
 
-            <div className="rv d1 on">
+            <div>
               <div className="contact-form-card">
                 <form ref={formRef} id="contactForm" className="contact-form" onSubmit={handleSubmit}>
                   <div>
