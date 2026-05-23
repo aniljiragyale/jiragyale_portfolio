@@ -81,18 +81,15 @@ export default function Home() {
         <div className="hero-bg-orb" />
         <div className="hero-bg-orb2" />
 
+        <div className="hero-top">
         <div className="hero-content">
           <div className="hero-status rv">
             <span className="blink"></span>
             Open to Full-Time Opportunities
           </div>
 
-          <div className="hero-label rv d1">
-            <span>&lt;</span>engineer<span>&gt;</span>
-          </div>
-
-          <h1 className="hero-name rv d1">
-            Anil
+          <h1 className="hero-name hero-name-full rv d1">
+            {CONTACT.name.replace(/\s+Jiragyale$/i, '')}{' '}
             <em>Jiragyale</em>
           </h1>
 
@@ -108,8 +105,8 @@ export default function Home() {
           </p>
 
           <div className="hero-actions rv d3">
-            <Link to="/contact" className="btn-grd">Get In Touch ✦</Link>
-            <Link to="/projects" className="btn-ghost">View Projects →</Link>
+            <Link to="/projects" className="btn-grd">View Projects ✦</Link>
+            <Link to="/contact" className="btn-ghost">Contact Me →</Link>
             <a href={resumePdf} download="Anil_Jiragyale_Resume_ATS.pdf" className="btn-ghost">
               Download Resume <i className="fas fa-download" style={{ marginLeft: '4px' }}></i>
             </a>
@@ -118,13 +115,6 @@ export default function Home() {
               <a href="https://github.com/aniljiragyale" target="_blank" rel="noreferrer" className="btn-sq" title="GitHub"><i className="fab fa-github"></i></a>
               <a href="tel:+919591585862" className="btn-sq" title="Phone"><i className="fas fa-phone"></i></a>
             </div>
-          </div>
-
-          <div className="hero-metrics rv d4">
-            <div className="metric"><div className="metric-n">2+</div><div className="metric-l">Years AI/FS Dev</div></div>
-            <div className="metric"><div className="metric-n">3+</div><div className="metric-l">Prod Platforms</div></div>
-            <div className="metric"><div className="metric-n">100+</div><div className="metric-l">Enterprise Users</div></div>
-            <div className="metric"><div className="metric-n">20+</div><div className="metric-l">Tech Stack</div></div>
           </div>
         </div>
 
@@ -142,6 +132,14 @@ export default function Home() {
               <div className="pc2-sm">100+ Enterprise Users</div>
             </div>
           </div>
+        </div>
+        </div>
+
+        <div className="hero-metrics rv d4">
+          <div className="metric"><div className="metric-n">2+</div><div className="metric-l">Years AI/FS Dev</div></div>
+          <div className="metric"><div className="metric-n">3+</div><div className="metric-l">Prod Platforms</div></div>
+          <div className="metric"><div className="metric-n">100+</div><div className="metric-l">Enterprise Users</div></div>
+          <div className="metric"><div className="metric-n">20+</div><div className="metric-l">Tech Stack</div></div>
         </div>
       </section>
 
