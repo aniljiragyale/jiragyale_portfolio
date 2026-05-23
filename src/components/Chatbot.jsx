@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import resumePdf from '../assets/Anil_Jiragyale_Resume_ATS.pdf'
 import { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS } from '../data/profile'
 import { PROJECTS } from '../data/projects'
@@ -130,6 +131,7 @@ Try: skills, experience, projects, or contact.`
 }
 
 export default function Chatbot() {
+  const [mounted, setMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([
     {
@@ -141,6 +143,10 @@ export default function Chatbot() {
   const [isTyping, setIsTyping] = useState(false)
   const chatEndRef = useRef(null)
   const panelRef = useRef(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -160,7 +166,7 @@ export default function Chatbot() {
 
     const onPointerDown = (e) => {
       const target = e.target
-      if (target instanceof Element && target.closest('.chatbot-window, .chatbot-toggle')) {
+      if (target instanceof Element && target.closest('.chatbot-window, .chatbot-toggle, .chatbot-fab-anchor')) {
         return
       }
       setIsOpen(false)
@@ -190,7 +196,9 @@ export default function Chatbot() {
     }, 800)
   }
 
-  return (
+  if (!mounted) return null
+
+  return createPortal(
     <>
       {isOpen && (
         <button
@@ -201,9 +209,8 @@ export default function Chatbot() {
         />
       )}
 
-      <div className="chatbot-wrapper">
-        {isOpen && (
-          <div className="chatbot-window" ref={panelRef} role="dialog" aria-label="AI Assistant chat">
+      {isOpen && (
+          <div className="chatbot-window" ref={panelRef} role="dialog" aria-label="AI Assistant chat" aria-modal="true">
             <div className="chatbot-header">
               <div className="chatbot-avatar">
                 <i className="fas fa-robot" />
@@ -271,9 +278,10 @@ export default function Chatbot() {
               </button>
             </form>
           </div>
-        )}
+      )}
 
-        {!isOpen && (
+      {!isOpen && (
+        <div className="chatbot-fab-anchor">
           <button
             type="button"
             className="chatbot-toggle"
@@ -283,9 +291,11 @@ export default function Chatbot() {
             ref={panelRef}
           >
             <i className="fas fa-robot" />
+            <span className="chatbot-toggle-text">Ask AI</span>
           </button>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </>,
+    document.body
   )
 }
