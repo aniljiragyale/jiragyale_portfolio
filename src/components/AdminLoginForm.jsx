@@ -1,15 +1,34 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { validateAdminLogin } from '../config/adminAuth'
+import { areAdminCredentialsConfigured, validateAdminLogin } from '../config/adminAuth'
+
+function setAdminSession(user) {
+  const payload = { at: Date.now(), user }
+  sessionStorage.setItem('admin_authorized', 'true')
+  sessionStorage.setItem('admin_user', user)
+  try {
+    localStorage.setItem('admin_authorized', 'true')
+    localStorage.setItem('admin_user', user)
+    localStorage.setItem('admin_session', JSON.stringify(payload))
+  } catch {
+    /* private mode / storage full */
+  }
+}
 
 export default function AdminLoginForm({ onSuccess }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const credentialsReady = areAdminCredentialsConfigured()
 
   const handleLogin = (e) => {
     e.preventDefault()
     setError('')
+
+    if (!credentialsReady) {
+      setError('Admin login is not configured on this server. Add VITE_ADMIN_USERNAME and VITE_ADMIN_PASSWORD, then redeploy.')
+      return
+    }
 
     if (!username.trim() || !password) {
       setError('Please enter username and password.')
@@ -17,8 +36,7 @@ export default function AdminLoginForm({ onSuccess }) {
     }
 
     if (validateAdminLogin(username, password)) {
-      sessionStorage.setItem('admin_authorized', 'true')
-      sessionStorage.setItem('admin_user', username.trim())
+      setAdminSession(username.trim())
       setPassword('')
       onSuccess(username.trim())
     } else {
@@ -50,17 +68,27 @@ export default function AdminLoginForm({ onSuccess }) {
         </div>
       </div>
 
+      {!credentialsReady && (
+        <div className="form-msg error show admin-config-notice">
+          Admin credentials are missing in this build. For local dev, set them in <code>.env</code>. For your live site, add the same variables in Vercel/hosting settings and redeploy.
+        </div>
+      )}
+
       <form onSubmit={handleLogin} className="admin-login-form">
         <div>
           <label className="fl" htmlFor="admin-username">Username</label>
           <input
             type="text"
             id="admin-username"
-            className="fi"
+            className="fi admin-fi"
             placeholder="Your admin username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            enterKeyHint="next"
             required
           />
         </div>
@@ -69,18 +97,21 @@ export default function AdminLoginForm({ onSuccess }) {
           <input
             type="password"
             id="admin-password"
-            className="fi"
+            className="fi admin-fi"
             placeholder="Your admin password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
+            enterKeyHint="go"
             required
           />
         </div>
 
         {error && <div className="form-msg error show">{error}</div>}
 
-        <button type="submit" className="fsub">Sign In to Admin Panel ✦</button>
+        <button type="submit" className="fsub admin-signin-btn" disabled={!credentialsReady}>
+          Sign In to Admin Panel ✦
+        </button>
       </form>
 
       <div className="admin-login-footer">

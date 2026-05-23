@@ -10,6 +10,11 @@ export function getAdminCredentials() {
   }
 }
 
+export function areAdminCredentialsConfigured() {
+  const { username, password } = getAdminCredentials()
+  return Boolean(username && password)
+}
+
 export function validateAdminLogin(username, password) {
   const expected = getAdminCredentials()
   if (!expected.username || !expected.password) {

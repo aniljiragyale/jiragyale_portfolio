@@ -1343,6 +1343,27 @@ a { color: inherit; text-decoration: none; }
 }
 .admin-login-sub { font-size: 0.85rem; color: var(--muted); }
 .admin-login-form { display: flex; flex-direction: column; gap: 1rem; }
+.admin-login-form .admin-fi {
+  font-size: 16px;
+  min-height: 48px;
+  width: 100%;
+}
+.admin-signin-btn {
+  min-height: 48px;
+  width: 100%;
+  font-size: 0.9rem;
+  touch-action: manipulation;
+}
+.admin-config-notice {
+  margin-bottom: 1rem;
+  line-height: 1.55;
+  font-size: 0.82rem;
+}
+.admin-config-notice code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--gold);
+}
 .admin-login-footer {
   text-align: center;
   margin-top: 1.5rem;
@@ -2157,8 +2178,19 @@ a { color: inherit; text-decoration: none; }
   .ft { min-height: 100px; }
   .fl { font-size: 0.68rem; }
   .admin-msg-meta { flex-direction: column; gap: 0.65rem; }
-  .admin-login-card { padding: 1.35rem 1rem; }
+  .admin-login-page {
+    padding: 5rem 0.85rem 1.5rem;
+    padding-top: max(5rem, env(safe-area-inset-top));
+    align-items: flex-start;
+  }
+  .admin-login-card {
+    padding: 1.35rem 1rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
   .admin-login-steps { padding: 0.75rem; margin-bottom: 1rem; }
+  .admin-login-form .admin-fi { font-size: 16px; }
+  .admin-signin-btn { min-height: 48px; }
   .admin-stat-card { padding: 0.9rem; }
   .admin-tab { padding: 10px 12px; font-size: 0.78rem; }
   .admin-toolbar-actions .btn-ghost,

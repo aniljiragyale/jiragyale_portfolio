@@ -35,8 +35,9 @@ export default function Admin() {
   }
 
   useEffect(() => {
-    const authStatus = sessionStorage.getItem('admin_authorized')
-    const authUser = sessionStorage.getItem('admin_user')
+    const authStatus =
+      sessionStorage.getItem('admin_authorized') || localStorage.getItem('admin_authorized')
+    const authUser = sessionStorage.getItem('admin_user') || localStorage.getItem('admin_user')
     if (authStatus === 'true' && authUser) {
       setIsAuthorized(true)
       setAdminUser(authUser)
@@ -49,6 +50,9 @@ export default function Admin() {
     setAdminUser('')
     sessionStorage.removeItem('admin_authorized')
     sessionStorage.removeItem('admin_user')
+    localStorage.removeItem('admin_authorized')
+    localStorage.removeItem('admin_user')
+    localStorage.removeItem('admin_session')
   }
 
   const handleDeleteMessage = (id) => {
