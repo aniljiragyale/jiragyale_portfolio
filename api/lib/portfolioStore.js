@@ -16,12 +16,6 @@ import {
 
 const MESSAGES_KEY = 'portfolio:messages'
 const RATINGS_KEY = 'portfolio:ratings'
-const MAX_ITEMS = 250
-
-export function isKvConfigured() {
-  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
-}
-
 export function isStorageConfigured() {
   return isExcelStorageReady()
 }
@@ -119,4 +113,4 @@ export async function buildExportBuffer() {
   return buildExcelBuffer(messages, ratings)
 }
 
-export { isBlobConfigured }
+export { isBlobConfigured, isKvConfigured }

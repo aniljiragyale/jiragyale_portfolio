@@ -1,0 +1,22 @@
+DEPLOY CHECKLIST — Contact form & ratings → Excel in admin
+============================================================
+
+1. Vercel → your project → Settings → Environment Variables
+   Add for PRODUCTION (required):
+     KV_REST_API_URL     = https://your-db.upstash.io
+     KV_REST_API_TOKEN   = your WRITE token (not read-only)
+
+2. Deployments → Redeploy (required after adding env vars)
+
+3. Verify storage is live:
+   Open: https://YOUR-SITE.vercel.app/api/storage-status
+   Should show: { "ok": true, "storage": "excel" }
+
+4. Test live site:
+   - Submit contact form
+   - Submit a star rating
+   - Login at /admin → Refresh → see Messages & Ratings
+   - Click "Excel" to download portfolio-submissions.xlsx
+
+Local test (with .env containing KV vars):
+   npm run test:storage
