@@ -64,6 +64,19 @@ export default function Home() {
   const SUMMARY = content.summary
   const SERVICES = content.home?.services?.length ? content.home.services : DEFAULT_SERVICES
   const TESTIMONIALS = content.home?.testimonials?.length ? content.home.testimonials : DEFAULT_TESTIMONIALS
+  const HOME = content.home || {}
+  const METRICS = HOME.metrics?.length ? HOME.metrics : [
+    { n: '2+', l: 'Years AI/FS Dev' },
+    { n: '3+', l: 'Prod Platforms' },
+    { n: '100+', l: 'Enterprise Users' },
+    { n: '20+', l: 'Tech Stack' },
+  ]
+  const STATS = HOME.statsBar?.length ? HOME.statsBar : [
+    { n: '30%', l: 'Query Accuracy Improvement' },
+    { n: '40%', l: 'Manual Effort Reduced' },
+    { n: '10K+', l: 'Documents Indexed (Semantic Search)' },
+    { n: '100ms', l: 'Search API Response Time' },
+  ]
   const pageRef = useScrollReveal()
 
   // Hero reveal on mount
@@ -87,7 +100,7 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-status rv">
             <span className="blink"></span>
-            Open to Full-Time Opportunities
+            {HOME.heroStatus || 'Open to Full-Time Opportunities'}
           </div>
 
           <h1 className="hero-name hero-name-full rv d1">
@@ -126,22 +139,24 @@ export default function Home() {
             <div className="photo-glow"></div>
             <img src={anilImg} alt="Anil Jiragyale" className="photo-img" />
             <div className="photo-card">
-              <div className="pc-big">Full Stack AI 🚀</div>
-              <div className="pc-sm">Rokkun · GSK GCC · Bangalore</div>
+              <div className="pc-big">{HOME.photoCard1?.big || 'Full Stack AI 🚀'}</div>
+              <div className="pc-sm">{HOME.photoCard1?.sm || 'Rokkun · GSK GCC · Bangalore'}</div>
             </div>
             <div className="photo-card2">
-              <div className="pc2-big">LLM &amp; RAG ✦</div>
-              <div className="pc2-sm">100+ Enterprise Users</div>
+              <div className="pc2-big">{HOME.photoCard2?.big || 'LLM & RAG ✦'}</div>
+              <div className="pc2-sm">{HOME.photoCard2?.sm || '100+ Enterprise Users'}</div>
             </div>
           </div>
         </div>
         </div>
 
         <div className="hero-metrics rv d4">
-          <div className="metric"><div className="metric-n">2+</div><div className="metric-l">Years AI/FS Dev</div></div>
-          <div className="metric"><div className="metric-n">3+</div><div className="metric-l">Prod Platforms</div></div>
-          <div className="metric"><div className="metric-n">100+</div><div className="metric-l">Enterprise Users</div></div>
-          <div className="metric"><div className="metric-n">20+</div><div className="metric-l">Tech Stack</div></div>
+          {METRICS.map((m, i) => (
+            <div key={`metric-${i}`} className="metric">
+              <div className="metric-n">{m.n}</div>
+              <div className="metric-l">{m.l}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -149,22 +164,12 @@ export default function Home() {
       <div className="sec-wrap alt">
         <div className="container" style={{paddingTop:'3rem', paddingBottom:'3rem'}}>
           <div className="stats-bar">
-            <div className="stat-item rv">
-              <div className="stat-n">30%</div>
-              <div className="stat-l">Query Accuracy Improvement</div>
-            </div>
-            <div className="stat-item rv d1">
-              <div className="stat-n">40%</div>
-              <div className="stat-l">Manual Effort Reduced</div>
-            </div>
-            <div className="stat-item rv d2">
-              <div className="stat-n">10K+</div>
-              <div className="stat-l">Documents Indexed (Semantic Search)</div>
-            </div>
-            <div className="stat-item rv d3">
-              <div className="stat-n">100ms</div>
-              <div className="stat-l">Search API Response Time</div>
-            </div>
+            {STATS.map((s, i) => (
+              <div key={`stat-${i}`} className={`stat-item rv${i ? ` d${i}` : ''}`}>
+                <div className="stat-n">{s.n}</div>
+                <div className="stat-l">{s.l}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -220,7 +225,6 @@ export default function Home() {
                 project={proj}
                 featured
                 delayClass={`d${Math.min(i, 4)}`}
-                showDetailsLink
               />
             ))}
           </div>
@@ -264,8 +268,8 @@ export default function Home() {
       <div className="sec-wrap alt">
         <div className="container">
           <div className="cta-banner rv">
-            <h2 className="cta-title">Ready to Build Something <span>Amazing?</span></h2>
-            <p>I'm actively seeking full-time roles in AI Engineering, Full Stack Development, or Product-Driven Companies.</p>
+            <h2 className="cta-title">{HOME.ctaTitle || 'Ready to Build Something Amazing?'}</h2>
+            <p>{HOME.ctaText || "I'm actively seeking full-time roles in AI Engineering, Full Stack Development, or Product-Driven Companies."}</p>
             <div className="cta-actions">
               <Link to="/contact" className="btn-grd">Get In Touch ✦</Link>
               <Link to="/projects" className="btn-ghost">See My Work →</Link>

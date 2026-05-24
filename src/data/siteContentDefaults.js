@@ -65,6 +65,13 @@ function serializeProjects(list) {
     ...p,
     img: typeof p.img === 'string' ? p.img : String(p.img),
     tags: [...(p.tags || [])],
+    details: p.details
+      ? {
+          ...p.details,
+          highlights: [...(p.details.highlights || [])],
+          outcomes: [...(p.details.outcomes || [])],
+        }
+      : undefined,
   }))
 }
 

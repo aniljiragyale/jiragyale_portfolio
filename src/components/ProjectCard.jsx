@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom'
 const FALLBACK_IMG =
   'https://images.unsplash.com/photo-1555949963-aa79dcee981c?auto=format&fit=crop&w=800&q=80'
 
-export default function ProjectCard({ project, delayClass = '', featured = false, showDetailsLink = false }) {
-  const linkIsExternal = project.link?.startsWith('http')
+export default function ProjectCard({ project, delayClass = '', featured = false }) {
+  const hasCodeLink = project.link?.startsWith('http')
   const [imgSrc, setImgSrc] = useState(project.img)
 
   return (
     <article className={`proj-card ${featured ? 'feat' : ''} rv ${delayClass}`}>
-      <div className="proj-img-wrap">
+      <section className="proj-img-wrap">
         <img
           src={imgSrc}
           alt={project.title}
@@ -18,28 +18,29 @@ export default function ProjectCard({ project, delayClass = '', featured = false
           loading="lazy"
           onError={() => setImgSrc(FALLBACK_IMG)}
         />
-        <div className="proj-overlay" />
-        <div className="proj-cat-badge">{project.cat}</div>
-      </div>
-      <div className="proj-body">
+        <span className="proj-overlay" aria-hidden="true" />
+        <span className="proj-cat-badge">{project.cat}</span>
+      </section>
+      <section className="proj-body">
         <h3 className="proj-name">{project.title}</h3>
         <p className="proj-desc">{project.desc}</p>
-        <div className="proj-stack">
+        <section className="proj-stack">
           {project.tags.map((tag) => (
             <span key={tag} className="ps-tag">{tag}</span>
           ))}
-        </div>
-        <div className="proj-foot">
+        </section>
+        <footer className="proj-foot">
           <span className={`pbadge ${project.badgeCls}`}>{project.badge}</span>
-          {showDetailsLink ? (
-            <Link to="/projects" className="proj-link">View Details →</Link>
-          ) : linkIsExternal ? (
-            <a href={project.link} target="_blank" rel="noreferrer" className="proj-link">View Code →</a>
-          ) : (
-            <a href={project.link} className="proj-link">View Details →</a>
-          )}
-        </div>
-      </div>
+          <section className="proj-foot-links">
+            <Link to={`/projects/${project.id}`} className="proj-link">View Details →</Link>
+            {hasCodeLink && (
+              <a href={project.link} target="_blank" rel="noreferrer" className="proj-link proj-link-code">
+                View Code →
+              </a>
+            )}
+          </section>
+        </footer>
+      </section>
     </article>
   )
 }
