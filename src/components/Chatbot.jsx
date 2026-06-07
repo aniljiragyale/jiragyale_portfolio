@@ -306,18 +306,18 @@ export default function Chatbot() {
             >
               <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="chatbot-icon-svg">
                 {/* Antennas & Ears */}
-                <path d="M16 7V4M16 4C16.8284 4 17.5 3.32843 17.5 2.5C17.5 1.67157 16.8284 1 16 1C15.1716 1 14.5 1.67157 14.5 2.5C14.5 3.32843 15.1716 4 16 4Z" fill="#040b16" stroke="#040b16" strokeWidth="0.5" />
-                <rect x="4" y="12" width="2" height="8" rx="1" fill="#040b16" />
-                <rect x="26" y="12" width="2" height="8" rx="1" fill="#040b16" />
-                {/* Main Head structure */}
-                <rect x="7" y="8" width="18" height="17" rx="5" fill="#040b16" stroke="#040b16" strokeWidth="1.5" />
-                {/* Face Visor/Screen */}
-                <rect x="9.5" y="10.5" width="13" height="9" rx="3.5" fill="#1e293b" />
+                <path d="M16 7V4M16 4C16.8284 4 17.5 3.32843 17.5 2.5C17.5 1.67157 16.8284 1 16 1C15.1716 1 14.5 1.67157 14.5 2.5C14.5 3.32843 15.1716 4 16 4Z" fill="#1e293b" stroke="#1e293b" strokeWidth="0.5" />
+                <rect x="4" y="12" width="2" height="8" rx="1" fill="#1e293b" />
+                <rect x="26" y="12" width="2" height="8" rx="1" fill="#1e293b" />
+                {/* Main Head structure (Futuristic White/Silver) */}
+                <rect x="7" y="8" width="18" height="17" rx="5" fill="#ffffff" stroke="#1e293b" strokeWidth="2" />
+                {/* Face Visor/Screen (Dark Blue screen) */}
+                <rect x="9.5" y="11" width="13" height="8" rx="2.5" fill="#0f172a" />
                 {/* Glowing cyan eyes */}
-                <circle cx="13" cy="14.5" r="1.5" fill="#38bdf8" className="bot-eye bot-eye-left" />
-                <circle cx="19" cy="14.5" r="1.5" fill="#38bdf8" className="bot-eye bot-eye-right" />
-                {/* Smile line */}
-                <path d="M13 17.2C14.2 18.2 17.8 18.2 19 17.2" stroke="#38bdf8" strokeWidth="1.2" strokeLinecap="round" />
+                <circle cx="13" cy="15" r="1.3" fill="#38bdf8" className="bot-eye bot-eye-left" />
+                <circle cx="19" cy="15" r="1.3" fill="#38bdf8" className="bot-eye bot-eye-right" />
+                {/* Smile line (drawn under the screen on the white plate) */}
+                <path d="M13 21C14 22 18 22 19 21" stroke="#1e293b" strokeWidth="1.2" strokeLinecap="round" />
               </svg>
             </button>
           </div>
