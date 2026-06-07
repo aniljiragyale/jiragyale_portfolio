@@ -295,16 +295,18 @@ export default function Chatbot() {
 
       {!isOpen && (
         <div className="chatbot-fab-anchor">
-          <button
-            type="button"
-            className="chatbot-toggle"
-            onClick={() => setIsOpen(true)}
-            title="AI Assistant"
-            aria-label="Open chat"
-            ref={panelRef}
-          >
-            <i className="fas fa-robot" />
-          </button>
+          <div className="chatbot-fab-wrap">
+            <button
+              type="button"
+              className="chatbot-toggle chatbot-toggle-anim"
+              onClick={() => setIsOpen(true)}
+              title="AI Assistant — Ask anything about Anil"
+              aria-label="Open chat"
+              ref={panelRef}
+            >
+              <i className="fas fa-robot" />
+            </button>
+          </div>
         </div>
       )}
     </>,
