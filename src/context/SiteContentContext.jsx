@@ -33,8 +33,8 @@ export function SiteContentProvider({ children }) {
   }, [reload])
 
   const persist = useCallback((next) => {
+    saveSiteContent(next) // throws if localStorage quota exceeded
     setContent(next)
-    saveSiteContent(next)
   }, [])
 
   const updateContent = useCallback(

@@ -41,6 +41,7 @@ export function getSiteContent() {
 }
 
 export function saveSiteContent(content) {
+  // Throws if localStorage quota is exceeded — callers should catch this
   localStorage.setItem(SITE_CONTENT_KEY, JSON.stringify(content))
   window.dispatchEvent(new CustomEvent('portfolio-site-content-updated'))
 }

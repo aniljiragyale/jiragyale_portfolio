@@ -85,14 +85,26 @@ export default function AdminSiteContent() {
     setUploading(true)
     try {
       const dataUrl = await readResumeFileAsDataUrl(file)
-      replaceContent({
+      const nextContent = {
         ...content,
         resume: {
           ...content.resume,
           dataUrl,
           fileName: file.name || 'resume.pdf',
         },
-      })
+      }
+      // Save to localStorage and update context
+      try {
+        replaceContent(nextContent)
+      } catch (storageErr) {
+        // localStorage quota exceeded — PDF too large
+        setUploadError('Resume PDF is too large to store in the browser (try compressing it below 2 MB). The resume was not saved.')
+        setUploading(false)
+        e.target.value = ''
+        return
+      }
+      // Force reload from storage so all pages (Home, About, Chatbot) pick up the new URL
+      setTimeout(() => reload(), 100)
       flashSaved()
     } catch (err) {
       setUploadError(err.message || 'Upload failed')

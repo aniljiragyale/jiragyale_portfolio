@@ -120,7 +120,7 @@ export default function Home() {
           </p>
 
           <div className="hero-actions rv d3">
-            <Link to="/projects" className="btn-grd">View Projects ✦</Link>
+            <Link to="/about" className="btn-grd">About ✦</Link>
             <Link to="/contact" className="btn-ghost">Contact Me →</Link>
             <a href={resumeUrl} download={resumeFileName} className="btn-ghost">
               Download Resume <i className="fas fa-download" style={{ marginLeft: '4px' }}></i>
