@@ -2899,8 +2899,8 @@ body.chatbot-open {
               inset 0 3px 6px rgba(255,255,255,0.4);
   border-color: rgba(246, 173, 85, 0.6);
 }
-.chatbot-toggle-anim:hover i {
-  transform: scale(1.2) rotate(15deg);
+.chatbot-toggle-anim:hover .chatbot-icon-svg {
+  transform: scale(1.15) rotate(15deg);
 }
 .chatbot-toggle {
   width: 62px;
@@ -2916,21 +2916,21 @@ body.chatbot-open {
   box-shadow: 0 8px 32px rgba(246,173,85,0.45), 
               0 0 20px rgba(251,191,36,0.25),
               inset 0 2px 4px rgba(255,255,255,0.3);
-  color: #040b16;
-  font-size: 1.5rem;
   position: relative;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.chatbot-toggle i {
-  transition: transform 0.3s ease;
-  animation: robotIconBlink 6s ease-in-out infinite;
+.chatbot-icon-svg {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-@keyframes robotIconBlink {
-  0%, 90%, 100% { transform: scale(1) rotate(0); }
-  93% { transform: scale(0.9) rotate(-10deg); }
-  96% { transform: scale(1.15) rotate(10deg); }
+.bot-eye {
+  transform-origin: center;
+  animation: botEyeBlink 4s ease-in-out infinite;
+}
+@keyframes botEyeBlink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
 }
 .chatbot-toggle:not(.chatbot-toggle-anim):hover {
   transform: scale(1.08);
