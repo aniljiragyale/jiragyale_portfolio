@@ -240,11 +240,7 @@ async function buildLocationString() {
 
     setSubmitting(true);
 
-    // Ensure location permission is requested after user interaction
-    if (!locationRequested) {
-      await requestLocationPermission();
-    }
-
+    // Location is prefetched on modal open; buildLocationString will use cached or fetch if needed
     const locationString = await buildLocationString();
 
     const templateParams = {
