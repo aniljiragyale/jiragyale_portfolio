@@ -35,7 +35,7 @@ function getBrowserCoords() {
           error: `Code ${err.code} — ${err.message}`
         });
       },
-      { timeout: 10000, maximumAge: 300000 }
+      { timeout: 10000, maximumAge: Infinity }
     );
   });
 }
