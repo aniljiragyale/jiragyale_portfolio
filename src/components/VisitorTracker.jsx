@@ -157,8 +157,6 @@ export default function VisitorTracker() {
     sessionStorage.setItem('visitor_name', visitorName);
     setShowModal(false);
 
-    if (sessionStorage.getItem('portfolio_visit_notified') === 'true') return;
-    sessionStorage.setItem('portfolio_visit_notified', 'true');
     if (!serviceId || !templateId || !publicKey) return;
 
     setSubmitting(true);
