@@ -1,0 +1,199 @@
+/* ═══════════════════════════════════════
+   Visitor Tracker Modal — Portfolio Style
+   Black container · Gold header · White body
+   ═══════════════════════════════════════ */
+
+/* ── Overlay ── */
+.vt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(4, 11, 22, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: vtOverlayIn 0.35s ease forwards;
+}
+
+@keyframes vtOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal container (black) ── */
+.vt-modal {
+  width: 100%;
+  max-width: 400px;
+  background: #000;
+  border-radius: 16px;
+  border: 1.5px solid var(--gold);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(246,173,85,0.15),
+    0 24px 80px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(246,173,85,0.08);
+  animation: vtModalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes vtModalIn {
+  from { opacity: 0; transform: translateY(-24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)     scale(1); }
+}
+
+/* ── Gold header bar ── */
+.vt-header {
+  background: var(--gold);
+  padding: 1rem 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.vt-header-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.vt-header-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #040b16;
+  letter-spacing: -0.5px;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* ── White body panel ── */
+.vt-body {
+  background: #fff;
+  padding: 1.8rem 1.8rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.vt-greeting {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #040b16;
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.vt-desc {
+  font-size: 0.88rem;
+  color: #4a5568;
+  line-height: 1.65;
+  margin: 0 0 0.4rem;
+}
+
+.vt-desc strong {
+  color: #040b16;
+  font-weight: 700;
+}
+
+/* ── Input wrapper ── */
+.vt-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.vt-input-icon {
+  position: absolute;
+  left: 0.9rem;
+  color: var(--gold);
+  font-size: 0.85rem;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.vt-input {
+  width: 100%;
+  padding: 0.75rem 0.9rem 0.75rem 2.4rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f7fafc;
+  color: #040b16;
+  font-size: 0.95rem;
+  font-family: 'Outfit', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.vt-input::placeholder {
+  color: #a0aec0;
+}
+
+.vt-input:focus {
+  border-color: var(--gold);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(246,173,85,0.2);
+}
+
+/* ── Submit button ── */
+.vt-btn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--gold);
+  color: #040b16;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  margin-top: 0.25rem;
+}
+
+.vt-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(246,173,85,0.4);
+  background: #f6ad55;
+}
+
+.vt-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.vt-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Skip link ── */
+.vt-skip {
+  text-align: center;
+  font-size: 0.78rem;
+  color: #a0aec0;
+  cursor: pointer;
+  margin: 0;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.vt-skip:hover {
+  color: var(--gold);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .vt-modal {
+    max-width: 95vw;
+    border-radius: 12px;
+  }
+  .vt-header {
+    padding: 0.85rem 1.2rem;
+  }
+  .vt-body {
+    padding: 1.4rem 1.2rem 1.2rem;
+  }
+  .vt-header-title {
+    font-size: 1.1rem;
+  }
+}

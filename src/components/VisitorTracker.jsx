@@ -1,21 +1,123 @@
-import { useEffect } from 'react'
-import emailjs from '@emailjs/browser'
-import { useLocation } from 'react-router-dom'
-import { useSiteContent } from '../context/SiteContentContext'
-import { CONTACT as DEFAULT_CONTACT } from '../data/profile'
+import { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useSiteContent } from '../context/SiteContentContext';
+import { CONTACT as DEFAULT_CONTACT } from '../data/profile';
+import './VisitorTracker.css';
 
 function getEmailJsConfig(contact = DEFAULT_CONTACT) {
-  const emailjsCfg = contact?.emailjs ?? DEFAULT_CONTACT.emailjs
+  const emailjsCfg = contact?.emailjs ?? DEFAULT_CONTACT.emailjs;
   return {
     serviceId: import.meta.env.VITE_EMAILJS_SERVICE_ID || emailjsCfg.serviceId,
     templateId: import.meta.env.VITE_EMAILJS_TEMPLATE_ID || emailjsCfg.templateId,
     publicKey: import.meta.env.VITE_EMAILJS_PUBLIC_KEY || emailjsCfg.publicKey,
+  };
+}
+
+/** Step 1 — Try browser GPS (most accurate). Returns coords or null. */
+function getBrowserCoords() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      () => resolve(null),          // denied or timed out
+      { timeout: 8000, maximumAge: 60000 }
+    );
+  });
+}
+
+/** Step 2 — Reverse geocode GPS coords → full address via OpenStreetMap Nominatim (free). */
+async function reverseGeocode(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) return null;
+    const d = await res.json();
+    const a = d.address || {};
+    return {
+      displayName: d.display_name || 'N/A',
+      road: a.road || a.pedestrian || a.footway || '',
+      suburb: a.suburb || a.neighbourhood || a.quarter || '',
+      city: a.city || a.town || a.village || a.county || '',
+      district: a.state_district || a.county || '',
+      state: a.state || '',
+      country: a.country || '',
+      postcode: a.postcode || 'N/A',
+    };
+  } catch {
+    return null;
   }
 }
 
+/** Step 3 — IP-based fallback (city-level, no GPS permission needed). */
+async function getIpLocation() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    if (!res.ok) throw new Error();
+    const d = await res.json();
+    return {
+      ip: d.ip || 'N/A',
+      city: d.city || 'N/A',
+      region: d.region || 'N/A',
+      country: d.country_name || 'N/A',
+      postal: d.postal || 'N/A',
+      isp: d.org || 'N/A',
+      latitude: d.latitude,
+      longitude: d.longitude,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Build the location section of the email. */
+async function buildLocationString(skipGps = false) {
+  // Try GPS first
+  if (!skipGps) {
+    const coords = await getBrowserCoords();
+
+    if (coords) {
+      const geo = await reverseGeocode(coords.lat, coords.lon);
+      if (geo) {
+        const addrParts = [geo.road, geo.suburb, geo.city, geo.district, geo.state, geo.country]
+          .filter(Boolean)
+          .join(', ');
+        return (
+          `📍 GPS LOCATION (High Accuracy ±${Math.round(coords.accuracy)}m)\n` +
+          `   Full Address : ${addrParts}\n` +
+          `   Pincode      : ${geo.postcode}\n` +
+          `   Display Name : ${geo.displayName}\n` +
+          `   Coordinates  : ${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}\n` +
+          `   Maps Link    : https://maps.google.com/?q=${coords.lat},${coords.lon}`
+        );
+      }
+    }
+  }
+
+  // Fallback to IP
+  const ip = await getIpLocation();
+  if (ip) {
+    const mapsQuery = ip.latitude && ip.longitude
+      ? `https://maps.google.com/?q=${ip.latitude},${ip.longitude}`
+      : `https://maps.google.com/?q=${encodeURIComponent(ip.city + ', ' + ip.country)}`;
+
+    return (
+      `📍 IP-BASED LOCATION (Approximate — ${skipGps ? 'GPS skipped by user choice' : 'GPS permission was denied'})\n` +
+      `   City/Region  : ${ip.city}, ${ip.region}\n` +
+      `   Country      : ${ip.country}\n` +
+      `   Postal Code  : ${ip.postal}\n` +
+      `   IP Address   : ${ip.ip}\n` +
+      `   ISP          : ${ip.isp}\n` +
+      `   Maps Link    : ${mapsQuery}`
+    );
+  }
+
+  return `📍 Location: Could not be determined (${skipGps ? 'GPS skipped' : 'GPS denied'} + IP lookup failed)`;
+}
+
 export default function VisitorTracker() {
-  const { content } = useSiteContent()
-  const location = useLocation()
+  const { content } = useSiteContent();
+  const location = useLocation();
+  const inputRef = useRef(null);
 
   const CONTACT = {
     ...DEFAULT_CONTACT,
@@ -24,89 +126,129 @@ export default function VisitorTracker() {
       ...DEFAULT_CONTACT.emailjs,
       ...content?.contact?.emailjs,
     },
-  }
+  };
 
-  const { serviceId, templateId, publicKey } = getEmailJsConfig(CONTACT)
+  const { serviceId, templateId, publicKey } = getEmailJsConfig(CONTACT);
+
+  const [name, setName] = useState('');
+  const [showModal, setShowModal] = useState(!sessionStorage.getItem('visitor_name'));
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Avoid triggering tracker on admin pages
-    if (location.pathname.startsWith('/admin')) {
-      return
+    if (showModal && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 300);
     }
+  }, [showModal]);
 
-    // Check session storage to prevent multiple emails per session
-    if (sessionStorage.getItem('portfolio_visit_notified') === 'true') {
-      return
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSubmit(false);
+  };
+
+  const handleSubmit = async (isSkip = false) => {
+    if (submitting) return;
+    const visitorName = isSkip ? 'Anonymous' : (name.trim() || 'Anonymous');
+    sessionStorage.setItem('visitor_name', visitorName);
+    setShowModal(false);
+
+    if (sessionStorage.getItem('portfolio_visit_notified') === 'true') return;
+    sessionStorage.setItem('portfolio_visit_notified', 'true');
+    if (!serviceId || !templateId || !publicKey) return;
+
+    setSubmitting(true);
+
+    const locationString = await buildLocationString(isSkip);
+
+    const templateParams = {
+      name: 'Portfolio Visitor Alert',
+      email: 'visitor-tracker@jiragyale.com',
+      subject: `🔔 ${visitorName} visited your profile — ${new Date().toLocaleDateString('en-IN')}`,
+      message:
+        `Hello Anil,\n\n` +
+        `👋 ${visitorName} visited your portfolio!\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `🕐 Time    : ${new Date().toLocaleString('en-IN')}\n` +
+        `📄 Page    : ${window.location.origin}${location.pathname}${location.search}\n` +
+        `🔗 Referrer: ${document.referrer || 'Direct / Bookmark'}\n` +
+        `🖥️ Device  : ${navigator.userAgent}\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `${locationString}\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `Cheers,\nPortfolio Tracker`,
+      to_email: CONTACT.email,
+      visitor_name: visitorName,
+    };
+
+    try {
+      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: serviceId,
+          template_id: templateId,
+          user_id: publicKey,
+          template_params: templateParams,
+        }),
+      });
+      if (res.ok) console.log('VisitorTracker: Email sent.');
+      else console.warn('VisitorTracker: Email failed', await res.text());
+    } catch (err) {
+      console.warn('VisitorTracker: Email error', err);
+    } finally {
+      setSubmitting(false);
     }
+  };
 
-    // Prompt for visitor name if not already known
-    let visitorName = sessionStorage.getItem('visitor_name');
-    if (!visitorName) {
-      visitorName = prompt('Welcome! May I have your name?')?.trim() || 'Anonymous';
-      sessionStorage.setItem('visitor_name', visitorName);
-    }
+  if (!showModal) return null;
 
-    // Set notified immediately to avoid duplicate trigger/race conditions
-    sessionStorage.setItem('portfolio_visit_notified', 'true')
+  return (
+    <div className="vt-overlay" role="dialog" aria-modal="true" aria-label="Welcome modal">
+      <div className="vt-modal">
 
-    const triggerNotification = async () => {
-      let ipString = 'Unknown / Could not resolve IP location details'
-      try {
-        const res = await fetch('https://ipapi.co/json/')
-        if (res.ok) {
-          const data = await res.json()
-          ipString = `IP: ${data.ip || 'N/A'}\nCity: ${data.city || 'N/A'}\nRegion: ${data.region || 'N/A'}\nCountry: ${data.country_name || 'N/A'}\nISP: ${data.org || 'N/A'}`
-        }
-      } catch (err) {
-        console.warn('VisitorTracker: Failed to fetch geolocation info', err)
-      }
+        {/* Gold header */}
+        <div className="vt-header">
+          <span className="vt-header-icon">👋</span>
+          <span className="vt-header-title">Welcome!</span>
+        </div>
 
-      const templateParams = {
-        name: 'Portfolio Visitor Alert',
-        email: 'visitor-tracker@jiragyale.com',
-        subject: `New Portfolio Visit Alert — ${new Date().toLocaleDateString()}`,
-        message: `Hello Anil,
+        {/* White body */}
+        <div className="vt-body">
+          <p className="vt-greeting">Hi there!</p>
+          <p className="vt-desc">
+            You're visiting <strong>Anil's Portfolio</strong>.<br />
+            Mind sharing your name so Anil knows who stopped by?
+          </p>
 
-A new user is visiting your portfolio!
+          <div className="vt-input-wrap">
+            <span className="vt-input-icon">✦</span>
+            <input
+              ref={inputRef}
+              id="visitor-name-input"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter your name…"
+              className="vt-input"
+              maxLength={60}
+              autoComplete="off"
+            />
+          </div>
 
---- Visitor Details ---
-Time: ${new Date().toLocaleString()}
-Page Landed: ${window.location.origin}${location.pathname}${location.search}
-Referrer: ${document.referrer || 'Direct / Bookmark'}
-User Agent: ${navigator.userAgent}
+          <button
+            id="visitor-submit-btn"
+            onClick={() => handleSubmit(false)}
+            className="vt-btn"
+            disabled={submitting}
+          >
+            {submitting ? 'Sending…' : 'Continue →'}
+          </button>
 
---- Location Info ---
-${ipString}`,
-        to_email: CONTACT.email,
-  visitor_name: visitorName,
-      }
+          <p className="vt-skip" onClick={() => handleSubmit(true)}>
+            Skip — continue anonymously
+          </p>
+        </div>
 
-      if (!serviceId || !templateId || !publicKey) return;
-
-      try {
-        // Direct EmailJS REST API call (no SDK)
-        const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: serviceId,
-            template_id: templateId,
-            user_id: publicKey,
-            template_params: templateParams,
-          }),
-        })
-        if (res.ok) {
-          console.log('VisitorTracker: Email sent successfully via REST API.')
-        } else {
-          console.error('VisitorTracker: Email send failed', await res.text())
-        }
-      } catch (apiError) {
-        console.error('VisitorTracker: EmailJS REST API request failed', apiError)
-      }
-    }
-
-    triggerNotification()
-  }, [location.pathname, location.search, serviceId, templateId, publicKey, CONTACT.email])
-
-  return null
+      </div>
+    </div>
+  );
 }
