@@ -87,25 +87,43 @@ async function reverseGeocode(lat, lon) {
     return null;
   }
 }
-
-/** Step 3 — IP-based fallback (city-level, no GPS permission needed). */
+// Step 3 — IP-based fallback (city-level, no GPS permission needed).
 async function getIpLocation() {
   try {
-    const res = await fetch('https://ipapi.co/json/');
-    if (!res.ok) throw new Error();
+    // Using ipinfo.io for higher‑resolution IP geolocation (city‑level with optional lat/lon)
+    const res = await fetch('https://ipinfo.io/json');
+    if (!res.ok) throw new Error('IP lookup failed');
     const d = await res.json();
+    const [lat, lon] = d.loc ? d.loc.split(',') : [null, null];
     return {
       ip: d.ip || 'N/A',
       city: d.city || 'N/A',
       region: d.region || 'N/A',
-      country: d.country_name || 'N/A',
+      country: d.country || 'N/A',
       postal: d.postal || 'N/A',
       isp: d.org || 'N/A',
-      latitude: d.latitude,
-      longitude: d.longitude,
+      latitude: lat ? Number(lat) : null,
+      longitude: lon ? Number(lon) : null,
     };
   } catch {
-    return null;
+    // Fallback to original ipapi.co if ipinfo fails
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      return {
+        ip: d.ip || 'N/A',
+        city: d.city || 'N/A',
+        region: d.region || 'N/A',
+        country: d.country_name || 'N/A',
+        postal: d.postal || 'N/A',
+        isp: d.org || 'N/A',
+        latitude: d.latitude,
+        longitude: d.longitude,
+      };
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -172,13 +190,31 @@ export default function VisitorTracker() {
 
   const [name, setName] = useState('');
   const [showModal, setShowModal] = useState(!sessionStorage.getItem('visitor_name'));
-  const [submitting, setSubmitting] = useState(false);
+  const [geoPermission, setGeoPermission] = useState('');
+
+  useEffect(() => {
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then(p => {
+        setGeoPermission(p.state);
+        p.onchange = () => setGeoPermission(p.state);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     if (showModal && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [showModal]);
+
+  const [locationRequested, setLocationRequested] = useState(false);
+
+  // Trigger a single geolocation request to surface the browser permission prompt
+  const requestLocationPermission = async () => {
+    setLocationRequested(true);
+    // This will invoke the permission dialog if needed
+    await getBrowserCoords();
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleSubmit(false);
@@ -272,6 +308,15 @@ export default function VisitorTracker() {
             />
           </div>
 
+          {geoPermission === 'prompt' && (
+            <button
+              className="vt-btn"
+              onClick={requestLocationPermission}
+              disabled={submitting}
+            >
+              Enable Precise Location
+            </button>
+          )}
           <button
             id="visitor-submit-btn"
             onClick={() => handleSubmit(false)}
