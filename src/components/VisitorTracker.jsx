@@ -13,21 +13,27 @@ function getEmailJsConfig(contact = DEFAULT_CONTACT) {
   };
 }
 
-/** Step 1 — Try browser GPS (most accurate). Returns coords or null. */
+/** Step 1 — Try browser GPS (most accurate). Returns { coords, error } or null. */
 function getBrowserCoords() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
       console.warn('VisitorTracker: Geolocation is not supported by this browser.');
-      return resolve(null);
+      return resolve({ error: 'Geolocation not supported by browser' });
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         console.log('VisitorTracker: GPS success', pos.coords);
-        resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy });
+        resolve({
+          coords: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy },
+          error: null
+        });
       },
       (err) => {
         console.warn('VisitorTracker: GPS failed/denied. Code:', err.code, 'Message:', err.message);
-        resolve(null);
+        resolve({
+          coords: null,
+          error: `Code ${err.code} — ${err.message}`
+        });
       },
       { timeout: 10000, maximumAge: 60000 }
     );
@@ -81,9 +87,10 @@ async function getIpLocation() {
 /** Build the location section of the email. */
 async function buildLocationString() {
   // Try GPS first
-  const coords = await getBrowserCoords();
+  const result = await getBrowserCoords();
 
-  if (coords) {
+  if (result && result.coords) {
+    const coords = result.coords;
     const geo = await reverseGeocode(coords.lat, coords.lon);
     if (geo) {
       const addrParts = [geo.road, geo.suburb, geo.city, geo.district, geo.state, geo.country]
@@ -101,6 +108,7 @@ async function buildLocationString() {
   }
 
   // Fallback to IP
+  const gpsError = result?.error || 'Unknown error';
   const ip = await getIpLocation();
   if (ip) {
     const mapsQuery = ip.latitude && ip.longitude
@@ -108,7 +116,7 @@ async function buildLocationString() {
       : `https://maps.google.com/?q=${encodeURIComponent(ip.city + ', ' + ip.country)}`;
 
     return (
-      `📍 IP-BASED LOCATION (Approximate — GPS permission was denied/unavailable)\n` +
+      `📍 IP-BASED LOCATION (Approximate — GPS failed: ${gpsError})\n` +
       `   City/Region  : ${ip.city}, ${ip.region}\n` +
       `   Country      : ${ip.country}\n` +
       `   Postal Code  : ${ip.postal}\n` +
@@ -118,7 +126,7 @@ async function buildLocationString() {
     );
   }
 
-  return '📍 Location: Could not be determined (GPS failed + IP lookup failed)';
+  return `📍 Location: Could not be determined (GPS failed: ${gpsError} + IP lookup failed)`;
 }
 
 export default function VisitorTracker() {
