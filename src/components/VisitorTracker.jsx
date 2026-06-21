@@ -27,6 +27,15 @@ function getBrowserCoords() {
           coords: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy },
           error: null
         });
+        // Cache the successful GPS location for future fallback
+        try {
+          localStorage.setItem('lastGpsLocation', JSON.stringify({
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            timestamp: Date.now()
+          }));
+        } catch (e) { console.warn('VisitorTracker: Failed to cache GPS location', e); }
       },
       (err) => {
         console.warn('VisitorTracker: GPS failed/denied. Code:', err.code, 'Message:', err.message);
@@ -34,8 +43,24 @@ function getBrowserCoords() {
           coords: null,
           error: `Code ${err.code} — ${err.message}`
         });
+        // If GPS fails, attempt to use cached location if recent (within 24h)
+        try {
+          const cached = localStorage.getItem('lastGpsLocation');
+          if (cached) {
+            const data = JSON.parse(cached);
+            const ageHours = (Date.now() - data.timestamp) / (1000 * 60 * 60);
+            if (ageHours <= 24) {
+              console.log('VisitorTracker: Using cached GPS location', data);
+              resolve({
+                coords: { lat: data.lat, lon: data.lon, accuracy: data.accuracy },
+                error: null
+              });
+              return;
+            }
+          }
+        } catch (e) { console.warn('VisitorTracker: Failed to read cached GPS location', e); }
       },
-      { timeout: 10000, maximumAge: Infinity }
+      { timeout: 300000, maximumAge: 0, enableHighAccuracy: true }
     );
   });
 }
