@@ -211,6 +211,14 @@ async function buildLocationString() {
     }
   }, [showModal]);
 
+  // Prefetch location when modal opens to reduce wait time on submit
+  useEffect(() => {
+    if (showModal && !locationRequested) {
+      // Fire and forget; requestLocationPermission sets locationRequested flag
+      requestLocationPermission();
+    }
+  }, [showModal]);
+
   const [locationRequested, setLocationRequested] = useState(false);
 
   // Retained for backward compatibility; now called automatically above
@@ -326,17 +334,6 @@ async function buildLocationString() {
             {submitting ? 'Sending…' : 'Continue →'}
           </button>
 
-          {/* Debug reset button visible on larger screens */}
-          <button
-            className="vt-btn"
-            style={{ marginTop: '0.5rem', background: '#555', color: '#fff' }}
-            onClick={() => {
-              sessionStorage.removeItem('visitor_name');
-              setShowModal(true);
-            }}
-          >
-            Reset Visitor Info (dev)
-          </button>
           <p className="vt-skip" onClick={() => handleSubmit(true)}>
             Skip — continue anonymously
           </p>
