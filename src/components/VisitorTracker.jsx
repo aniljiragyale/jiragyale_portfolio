@@ -172,10 +172,12 @@ async function buildLocationString() {
   return `📍 Location: Could not be determined (GPS failed: ${gpsError} + IP lookup failed)`;
 }
 
-export default function VisitorTracker() {
+
+  export default function VisitorTracker() {
   const { content } = useSiteContent();
   const location = useLocation();
   const inputRef = useRef(null);
+  const [geoPermission, setGeoPermission] = useState('prompt');
 
   const CONTACT = {
     ...DEFAULT_CONTACT,
@@ -189,9 +191,12 @@ export default function VisitorTracker() {
   const { serviceId, templateId, publicKey } = getEmailJsConfig(CONTACT);
 
   const [name, setName] = useState('');
-  const [showModal, setShowModal] = useState(!sessionStorage.getItem('visitor_name'));
-  const [geoPermission, setGeoPermission] = useState('');
-const [submitting, setSubmitting] = useState(false);
+  const [showModal, setShowModal] = useState(() => {
+    const url = new URL(window.location);
+    // Force show if query param present, otherwise hide after name stored
+    return url.searchParams.get('showVisitor') === 'true' || !sessionStorage.getItem('visitor_name');
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (navigator.permissions && navigator.permissions.query) {
@@ -202,18 +207,23 @@ const [submitting, setSubmitting] = useState(false);
     }
   }, []);
 
+  // Auto‑request geolocation when the modal first appears
   useEffect(() => {
+    if (showModal && !locationRequested) {
+      // Trigger permission prompt without user interaction
+      setLocationRequested(true);
+      getBrowserCoords();
+    }
     if (showModal && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
-  }, [showModal]);
+  }, [showModal, locationRequested]);
 
   const [locationRequested, setLocationRequested] = useState(false);
 
-  // Trigger a single geolocation request to surface the browser permission prompt
+  // Retained for backward compatibility; now called automatically above
   const requestLocationPermission = async () => {
     setLocationRequested(true);
-    // This will invoke the permission dialog if needed
     await getBrowserCoords();
   };
 
@@ -309,15 +319,6 @@ const [submitting, setSubmitting] = useState(false);
             />
           </div>
 
-          {geoPermission !== 'granted' && (
-            <button
-              className="vt-btn"
-              onClick={requestLocationPermission}
-              disabled={submitting}
-            >
-              Enable Precise Location
-            </button>
-          )}
           <button
             id="visitor-submit-btn"
             onClick={() => handleSubmit(false)}
@@ -327,6 +328,17 @@ const [submitting, setSubmitting] = useState(false);
             {submitting ? 'Sending…' : 'Continue →'}
           </button>
 
+          {/* Debug reset button visible on larger screens */}
+          <button
+            className="vt-btn"
+            style={{ marginTop: '0.5rem', background: '#555', color: '#fff' }}
+            onClick={() => {
+              sessionStorage.removeItem('visitor_name');
+              setShowModal(true);
+            }}
+          >
+            Reset Visitor Info (dev)
+          </button>
           <p className="vt-skip" onClick={() => handleSubmit(true)}>
             Skip — continue anonymously
           </p>
