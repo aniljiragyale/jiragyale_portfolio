@@ -16,11 +16,20 @@ function getEmailJsConfig(contact = DEFAULT_CONTACT) {
 /** Step 1 — Try browser GPS (most accurate). Returns coords or null. */
 function getBrowserCoords() {
   return new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(null);
+    if (!navigator.geolocation) {
+      console.warn('VisitorTracker: Geolocation is not supported by this browser.');
+      return resolve(null);
+    }
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-      () => resolve(null),          // denied or timed out
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      (pos) => {
+        console.log('VisitorTracker: GPS success', pos.coords);
+        resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy });
+      },
+      (err) => {
+        console.warn('VisitorTracker: GPS failed/denied. Code:', err.code, 'Message:', err.message);
+        resolve(null);
+      },
+      { timeout: 10000, maximumAge: 60000 }
     );
   });
 }
