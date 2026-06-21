@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSiteContent } from '../context/SiteContentContext'
+import { submitChat } from '../utils/portfolioApi'
 
 const CHIPS = [
   { label: '💻 Skills', query: 'What are your core skills?' },
@@ -75,6 +76,36 @@ function renderMessageText(text) {
 function getBotResponse(query, { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS, PROJECTS, resumeUrl }) {
   const q = query.toLowerCase()
 
+  // Chatbot description
+  if (q.includes('chatbot') || q.includes('assistant') || q.includes('ai') || q.includes('ai assistant')) {
+    return "I’m an AI assistant that can answer questions about Anil’s skills, experience, projects, education, personal background, and contact details. Ask me about \"skills\", \"experience\", \"education\", \"personal\", or \"contact\"."
+  }
+
+  // Help / Check / Options command
+  if (q.includes('check') || q.includes('help') || q.includes('options')) {
+    return "You can ask me about: skills, experience, projects, education, personal background, contact, or download the resume. Just type a keyword like \"skills\" or \"education\"."
+  }
+  // Personal / background info (expanded keywords)
+  if (
+    q.includes('personal') ||
+    q.includes('family') ||
+    q.includes('about me') ||
+    q.includes('background') ||
+    q.includes('my life') ||
+    q.includes('my family') ||
+    q.includes('my background') ||
+    q.includes('who am i') ||
+    q.includes('who i am') ||
+    q.includes('how are you') ||
+    q.includes('how you doing') ||
+    q.includes('how is he') ||
+    q.includes('how he is') ||
+    q.includes('how everything') ||
+    q.includes('how is everything')
+  ) {
+    return "Anil is doing fantastic! Personally and with his family, everything is going great and everyone is doing well. He is currently based in Bangalore, fully focused on his passion for building state-of-the-art Full Stack AI applications. Thanks for asking about him!";
+  }
+
   if (q.includes('skill') || q.includes('technolog') || q.includes('lang') || q.includes('stack') || q.includes('core')) {
     return `Anil is a **Full Stack AI Engineer**. Key skills:
 
@@ -119,13 +150,32 @@ function getBotResponse(query, { CONTACT, EXPERIENCE, EDUCATION, CERTIFICATIONS,
     return CERTIFICATIONS.slice(0, 5).map((c) => `• ${c.name} — ${c.org}`).join('\n')
   }
 
+  if (
+    q.includes('family') ||
+    q.includes('personal') ||
+    q.includes('parent') ||
+    q.includes('sibling') ||
+    q.includes('brother') ||
+    q.includes('sister') ||
+    q.includes('father') ||
+    q.includes('mother') ||
+    q.includes('how are you') ||
+    q.includes('how you doing') ||
+    q.includes('how is he') ||
+    q.includes('how he is') ||
+    q.includes('how everything') ||
+    q.includes('how is everything')
+  ) {
+    return "Anil is doing fantastic! Personally and with his family, everything is going great and everyone is doing well. He is currently based in Bangalore, fully focused on his passion for building state-of-the-art Full Stack AI applications. Thanks for asking about him!"
+  }
+
   if (q.includes('hello') || q.includes('hi') || q.includes('hey')) {
     return "Hello! Ask about Anil's **skills**, **experience**, **projects**, or **contact** details."
   }
 
   return `**${CONTACT.name}** is a Full Stack AI Engineer (not a senior title) at Rokkun Systems and formerly GSK GCC.
 
-Try: skills, experience, projects, or contact.`
+Try: skills, experience, projects, education, personal background, contact, or type "check" for options.`
 }
 
 export default function Chatbot() {
@@ -198,8 +248,13 @@ export default function Chatbot() {
     setIsTyping(true)
 
     setTimeout(() => {
-      setMessages((prev) => [...prev, { sender: 'bot', text: getBotResponse(text, botCtx) }])
+      const botResponse = getBotResponse(text, botCtx)
+      setMessages((prev) => [...prev, { sender: 'bot', text: botResponse }])
       setIsTyping(false)
+      
+      submitChat({ userMessage: text, botResponse }).catch((err) => {
+        console.warn('submitChat failed:', err)
+      })
     }, 800)
   }
 

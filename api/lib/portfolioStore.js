@@ -12,6 +12,10 @@ import {
   deleteMessageFromExcel,
   deleteRatingFromExcel,
   buildExcelBuffer,
+  getChatsFromExcel,
+  addChatToExcel,
+  setChatsInExcel,
+  deleteChatFromExcel,
 } from './excelStore.js'
 
 const MESSAGES_KEY = 'portfolio:messages'
@@ -107,10 +111,31 @@ export function computeRatingStats(ratings) {
   }
 }
 
+export async function getChats() {
+  if (!isStorageConfigured()) return []
+  return getChatsFromExcel()
+}
+
+export async function addChat(entry) {
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return addChatToExcel(entry)
+}
+
+export async function setChats(chats) {
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return setChatsInExcel(chats)
+}
+
+export async function deleteChat(id) {
+  if (!isStorageConfigured()) throw new Error('STORAGE_NOT_CONFIGURED')
+  return deleteChatFromExcel(id)
+}
+
 export async function buildExportBuffer() {
   const messages = await getMessages()
   const ratings = await getRatings()
-  return buildExcelBuffer(messages, ratings)
+  const chats = await getChats()
+  return buildExcelBuffer(messages, ratings, chats)
 }
 
 export { isBlobConfigured, isKvConfigured }

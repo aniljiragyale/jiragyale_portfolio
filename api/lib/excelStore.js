@@ -8,6 +8,7 @@ const MAX_ITEMS = 250
 
 const MESSAGE_HEADERS = ['ID', 'Date', 'Name', 'Email', 'Subject', 'Message']
 const RATING_HEADERS = ['ID', 'Date', 'Name', 'Stars', 'Comment']
+const CHAT_HEADERS = ['ID', 'Date', 'User Message', 'Bot Response']
 
 export function isBlobConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN)
@@ -50,6 +51,16 @@ function ensureRatingSheet(wb) {
   return sheet
 }
 
+function ensureChatSheet(wb) {
+  let sheet = wb.getWorksheet('Chats')
+  if (!sheet) {
+    sheet = wb.addWorksheet('Chats')
+    sheet.addRow(CHAT_HEADERS)
+    styleHeader(sheet)
+  }
+  return sheet
+}
+
 function styleHeader(sheet) {
   const row = sheet.getRow(1)
   row.font = { bold: true }
@@ -84,6 +95,7 @@ async function loadWorkbook() {
 
   ensureMessageSheet(wb)
   ensureRatingSheet(wb)
+  ensureChatSheet(wb)
   return wb
 }
 
@@ -236,8 +248,9 @@ export async function deleteRatingFromExcel(id) {
 }
 
 /** Build Excel file from in-memory lists (export / KV fallback) */
-export async function buildExcelBuffer(messages = [], ratings = []) {
+export async function buildExcelBuffer(messages = [], ratings = [], chats = []) {
   const wb = new ExcelJS.Workbook()
+  
   const msgSheet = wb.addWorksheet('Messages')
   msgSheet.addRow(MESSAGE_HEADERS)
   styleHeader(msgSheet)
@@ -252,7 +265,70 @@ export async function buildExcelBuffer(messages = [], ratings = []) {
     rateSheet.addRow([r.id, r.date, r.name, r.stars, r.comment || ''])
   })
 
+  const chatSheet = wb.addWorksheet('Chats')
+  chatSheet.addRow(CHAT_HEADERS)
+  styleHeader(chatSheet)
+  chats.forEach((c) => {
+    chatSheet.addRow([c.id, c.date, c.userMessage, c.botResponse])
+  })
+
   return wb.xlsx.writeBuffer()
+}
+
+function rowToChat(row) {
+  const id = Number(row.getCell(1).value)
+  if (!id) return null
+  return {
+    id,
+    date: String(row.getCell(2).value ?? ''),
+    userMessage: String(row.getCell(3).value ?? ''),
+    botResponse: String(row.getCell(4).value ?? ''),
+  }
+}
+
+function parseChatsSheet(sheet) {
+  const items = []
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return
+    const chat = rowToChat(row)
+    if (chat) items.push(chat)
+  })
+  return items.sort((a, b) => b.id - a.id).slice(0, MAX_ITEMS)
+}
+
+export async function getChatsFromExcel() {
+  const wb = await loadWorkbook()
+  return parseChatsSheet(ensureChatSheet(wb))
+}
+
+export async function addChatToExcel(entry) {
+  const wb = await loadWorkbook()
+  const sheet = ensureChatSheet(wb)
+  sheet.spliceRows(2, 0, [
+    entry.id,
+    entry.date,
+    entry.userMessage,
+    entry.botResponse,
+  ])
+  await saveWorkbook(wb)
+  return getChatsFromExcel()
+}
+
+export async function setChatsInExcel(chats) {
+  const wb = await loadWorkbook()
+  const sheet = ensureChatSheet(wb)
+  rewriteSheet(
+    sheet,
+    CHAT_HEADERS,
+    chats.map((c) => [c.id, c.date, c.userMessage, c.botResponse])
+  )
+  await saveWorkbook(wb)
+  return chats
+}
+
+export async function deleteChatFromExcel(id) {
+  const chats = (await getChatsFromExcel()).filter((c) => c.id !== id)
+  return setChatsInExcel(chats)
 }
 
 export async function getExcelDownloadBuffer() {

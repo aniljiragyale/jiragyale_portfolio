@@ -11,6 +11,9 @@ import {
   clearRatingsAdmin,
   clearAdminApiToken,
   downloadExcelExport,
+  fetchChatsAdmin,
+  deleteChatAdmin,
+  clearChatsAdmin,
 } from '../utils/portfolioApi'
 
 function StarDisplay({ count }) {
@@ -29,6 +32,7 @@ export default function Admin() {
   const [tab, setTab] = useState('messages')
   const [messages, setMessages] = useState([])
   const [ratings, setRatings] = useState([])
+  const [chats, setChats] = useState([])
   const [ratingStats, setRatingStats] = useState({ count: 0, average: 0, distribution: {} })
   const [loading, setLoading] = useState(false)
   const [storageOk, setStorageOk] = useState(true)
@@ -52,6 +56,11 @@ export default function Admin() {
     setRatingStats(ratingResult.stats || { count: 0, average: 0, distribution: {} })
     if (ratingResult.storageOk === false) setStorageOk(false)
     if (ratingResult.storageMode) setStorageMode(ratingResult.storageMode)
+
+    const chatResult = await fetchChatsAdmin()
+    setChats(chatResult.chats || [])
+    if (chatResult.storageOk === false) setStorageOk(false)
+    if (chatResult.storageMode) setStorageMode(chatResult.storageMode)
     setLoading(false)
   }, [])
 
@@ -111,6 +120,18 @@ export default function Admin() {
       const { ratings: updated, stats } = await clearRatingsAdmin()
       setRatings(updated)
       setRatingStats(stats)
+    }
+  }
+
+  const handleDeleteChat = async (id) => {
+    const updated = await deleteChatAdmin(id)
+    setChats(updated)
+  }
+
+  const handleClearChats = async () => {
+    if (window.confirm('Delete all chat logs?')) {
+      const updated = await clearChatsAdmin()
+      setChats(updated)
     }
   }
 
@@ -187,6 +208,10 @@ export default function Admin() {
             <div className="admin-stat-n accent2">{ratingStats.count}</div>
             <div className="admin-stat-l">Total Ratings</div>
           </div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-n" style={{ color: 'var(--purple)' }}>{chats.length}</div>
+            <div className="admin-stat-l">Chat Logs</div>
+          </div>
         </div>
 
         <div className="admin-tabs">
@@ -203,6 +228,13 @@ export default function Admin() {
             onClick={() => setTab('ratings')}
           >
             <i className="fas fa-star" /> Ratings ({ratings.length})
+          </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === 'chats' ? 'active' : ''}`}
+            onClick={() => setTab('chats')}
+          >
+            <i className="fas fa-comments" /> Chats ({chats.length})
           </button>
           <button
             type="button"
@@ -351,6 +383,61 @@ export default function Admin() {
                         <p className="admin-msg-body">{r.comment}</p>
                       </div>
                     )}
+                  </article>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {tab === 'chats' && (
+          <>
+            {chats.length > 0 && (
+              <div className="admin-panel-actions">
+                <button type="button" onClick={handleClearChats} className="btn-ghost admin-btn-sm admin-btn-danger">
+                  Clear all chats
+                </button>
+              </div>
+            )}
+            {chats.length === 0 && !loading ? (
+              <div className="admin-empty">
+                <div className="admin-empty-icon">💬</div>
+                <h3>No chats yet</h3>
+                <p>Chatbot conversations with your visitors will appear here.</p>
+              </div>
+            ) : (
+              <div className="admin-msg-list">
+                {chats.map((c) => (
+                  <article key={c.id} className="admin-msg-card">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteChat(c.id)}
+                      className="admin-msg-delete"
+                      title="Delete chat log"
+                      aria-label="Delete chat log"
+                    >
+                      <i className="fas fa-trash-alt" />
+                    </button>
+                    <div className="admin-msg-meta">
+                      <div>
+                        <span className="admin-msg-label">Chat Session ID</span>
+                        <strong className="admin-msg-val">#{c.id}</strong>
+                      </div>
+                      <div>
+                        <span className="admin-msg-label">Date</span>
+                        <span className="admin-msg-date">{c.date}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="admin-msg-label">User Query</span>
+                      <div className="admin-msg-subject" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontWeight: 'normal', color: 'var(--text)' }}>
+                        {c.userMessage}
+                      </div>
+                      <span className="admin-msg-label" style={{ marginTop: '0.75rem' }}>AJ Assistant Response</span>
+                      <p className="admin-msg-body" style={{ borderLeft: '3px solid var(--accent)', background: 'rgba(99,179,237,0.05)' }}>
+                        {c.botResponse}
+                      </p>
+                    </div>
                   </article>
                 ))}
               </div>

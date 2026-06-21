@@ -6,6 +6,7 @@
 const MESSAGES_KEY = 'portfolio_messages'
 const RATINGS_KEY = 'portfolio_ratings'
 const ADMIN_TOKEN_KEY = 'admin_api_token'
+const CHATS_KEY = 'portfolio_chats'
 
 function authHeaders() {
   const token =
@@ -299,4 +300,97 @@ function computeStatsLocal(ratings) {
     average: Math.round((sum / ratings.length) * 10) / 10,
     distribution,
   }
+}
+
+// ——— Chats ———
+
+export async function submitChat(payload) {
+  const entry = {
+    id: Date.now(),
+    ...payload,
+    date: new Date().toLocaleString(),
+  }
+
+  try {
+    const res = await fetch('/api/chats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    })
+    if (res.ok) return { ok: true, entry, cloud: true }
+  } catch (err) {
+    console.warn('submitChat API:', err)
+  }
+
+  const local = [entry, ...readLocal(CHATS_KEY)]
+  writeLocal(CHATS_KEY, local)
+  return { ok: true, entry, cloud: false }
+}
+
+function parseChatsPayload(data) {
+  if (Array.isArray(data)) return { chats: data, storageMode: 'kv' }
+  return { chats: data.chats || [], storageMode: data.storage || 'unknown' }
+}
+
+export async function fetchChatsAdmin() {
+  try {
+    const res = await fetch('/api/chats', { headers: authHeaders() })
+    if (res.ok) {
+      const data = await res.json()
+      const { chats: remote, storageMode } = parseChatsPayload(data)
+      const chats = import.meta.env.DEV
+        ? mergeById(remote, readLocal(CHATS_KEY))
+        : remote
+      return { chats, storageOk: true, storageMode }
+    }
+    if (res.status === 401) {
+      return { error: 'unauthorized', chats: [], storageOk: false }
+    }
+    if (res.status === 503) {
+      return {
+        error: 'storage_not_configured',
+        chats: readLocal(CHATS_KEY),
+        storageOk: false,
+      }
+    }
+  } catch (err) {
+    console.warn('fetchChatsAdmin:', err)
+  }
+  return { chats: readLocal(CHATS_KEY), storageOk: false, storageMode: 'local' }
+}
+
+export async function deleteChatAdmin(id) {
+  try {
+    const res = await fetch(`/api/chats?id=${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      writeLocal(CHATS_KEY, data.chats || [])
+      return data.chats
+    }
+  } catch (err) {
+    console.warn('deleteChatAdmin:', err)
+  }
+  const updated = readLocal(CHATS_KEY).filter((c) => c.id !== id)
+  writeLocal(CHATS_KEY, updated)
+  return updated
+}
+
+export async function clearChatsAdmin() {
+  try {
+    const res = await fetch('/api/chats?all=1', {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    if (res.ok) {
+      writeLocal(CHATS_KEY, [])
+      return []
+    }
+  } catch (err) {
+    console.warn('clearChatsAdmin:', err)
+  }
+  writeLocal(CHATS_KEY, [])
+  return []
 }

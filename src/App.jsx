@@ -10,6 +10,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import Contact from './pages/Contact'
 import Admin from './pages/Admin'
 import Chatbot from './components/Chatbot'
+import VisitorTracker from './components/VisitorTracker'
 
 // Helper component to scroll window to top on route change
 function ScrollToTop() {
@@ -25,6 +26,7 @@ function App() {
     <SiteContentProvider>
     <BrowserRouter>
       <ScrollToTop />
+      <VisitorTracker />
       <Routes>
         <Route path="/admin" element={<Admin />} />
         <Route path="/*" element={
