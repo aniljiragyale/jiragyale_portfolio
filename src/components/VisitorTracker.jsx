@@ -25,7 +25,7 @@ function getBrowserCoords() {
         console.log('VisitorTracker: GPS success', pos.coords);
         resolve({
           coords: { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy },
-          error: null
+          error: null,
         });
         // Cache the successful GPS location for future fallback
         try {
@@ -33,17 +33,13 @@ function getBrowserCoords() {
             lat: pos.coords.latitude,
             lon: pos.coords.longitude,
             accuracy: pos.coords.accuracy,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
         } catch (e) { console.warn('VisitorTracker: Failed to cache GPS location', e); }
       },
-      (err) => {
+      async (err) => {
         console.warn('VisitorTracker: GPS failed/denied. Code:', err.code, 'Message:', err.message);
-        resolve({
-          coords: null,
-          error: `Code ${err.code} — ${err.message}`
-        });
-        // If GPS fails, attempt to use cached location if recent (within 24h)
+        // Attempt to use cached location if recent (within 24h)
         try {
           const cached = localStorage.getItem('lastGpsLocation');
           if (cached) {
@@ -51,16 +47,20 @@ function getBrowserCoords() {
             const ageHours = (Date.now() - data.timestamp) / (1000 * 60 * 60);
             if (ageHours <= 24) {
               console.log('VisitorTracker: Using cached GPS location', data);
-              resolve({
+              return resolve({
                 coords: { lat: data.lat, lon: data.lon, accuracy: data.accuracy },
-                error: null
+                error: null,
               });
-              return;
             }
           }
         } catch (e) { console.warn('VisitorTracker: Failed to read cached GPS location', e); }
+        // No valid cache, return error
+        resolve({
+          coords: null,
+          error: `Code ${err.code} — ${err.message}`,
+        });
       },
-      { timeout: 300000, maximumAge: 0, enableHighAccuracy: true }
+      { timeout: 30000, maximumAge: 0, enableHighAccuracy: true }
     );
   });
 }
@@ -191,11 +191,7 @@ async function buildLocationString() {
   const { serviceId, templateId, publicKey } = getEmailJsConfig(CONTACT);
 
   const [name, setName] = useState('');
-  const [showModal, setShowModal] = useState(() => {
-    const url = new URL(window.location);
-    // Force show if query param present, otherwise hide after name stored
-    return url.searchParams.get('showVisitor') === 'true' || !sessionStorage.getItem('visitor_name');
-  });
+  const [showModal, setShowModal] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -207,17 +203,13 @@ async function buildLocationString() {
     }
   }, []);
 
-  // Auto‑request geolocation when the modal first appears
+  // Removed auto‑request of geolocation on modal open to comply with mobile browser policies.
+  // Instead, we request location when the user submits their name.
   useEffect(() => {
-    if (showModal && !locationRequested) {
-      // Trigger permission prompt without user interaction
-      setLocationRequested(true);
-      getBrowserCoords();
-    }
     if (showModal && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 300);
     }
-  }, [showModal, locationRequested]);
+  }, [showModal]);
 
   const [locationRequested, setLocationRequested] = useState(false);
 
@@ -235,11 +227,15 @@ async function buildLocationString() {
     if (submitting) return;
     const visitorName = isSkip ? 'Anonymous' : (name.trim() || 'Anonymous');
     sessionStorage.setItem('visitor_name', visitorName);
-    setShowModal(false);
 
     if (!serviceId || !templateId || !publicKey) return;
 
     setSubmitting(true);
+
+    // Ensure location permission is requested after user interaction
+    if (!locationRequested) {
+      await requestLocationPermission();
+    }
 
     const locationString = await buildLocationString();
 
@@ -280,6 +276,8 @@ async function buildLocationString() {
       console.warn('VisitorTracker: Email error', err);
     } finally {
       setSubmitting(false);
+      // Hide modal after everything is done
+      setShowModal(false);
     }
   };
 
