@@ -39,6 +39,13 @@ export default function VisitorTracker() {
       return
     }
 
+    // Prompt for visitor name if not already known
+    let visitorName = sessionStorage.getItem('visitor_name');
+    if (!visitorName) {
+      visitorName = prompt('Welcome! May I have your name?')?.trim() || 'Anonymous';
+      sessionStorage.setItem('visitor_name', visitorName);
+    }
+
     // Set notified immediately to avoid duplicate trigger/race conditions
     sessionStorage.setItem('portfolio_visit_notified', 'true')
 
@@ -71,35 +78,30 @@ User Agent: ${navigator.userAgent}
 --- Location Info ---
 ${ipString}`,
         to_email: CONTACT.email,
+  visitor_name: visitorName,
       }
 
+      if (!serviceId || !templateId || !publicKey) return;
+
       try {
-        if (publicKey) {
-          emailjs.init({ publicKey })
+        // Direct EmailJS REST API call (no SDK)
+        const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: serviceId,
+            template_id: templateId,
+            user_id: publicKey,
+            template_params: templateParams,
+          }),
+        })
+        if (res.ok) {
+          console.log('VisitorTracker: Email sent successfully via REST API.')
+        } else {
+          console.error('VisitorTracker: Email send failed', await res.text())
         }
-        await emailjs.send(serviceId, templateId, templateParams, { publicKey })
-        console.log('Visitor notification email sent successfully.')
-      } catch (sdkError) {
-        console.warn('VisitorTracker: EmailJS SDK failed, trying REST API...', sdkError)
-        try {
-          const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              service_id: serviceId,
-              template_id: templateId,
-              user_id: publicKey,
-              template_params: templateParams,
-            }),
-          })
-          if (res.ok) {
-            console.log('Visitor notification email sent successfully via REST API.')
-          } else {
-            console.warn('VisitorTracker: EmailJS REST API response not OK')
-          }
-        } catch (apiError) {
-          console.error('VisitorTracker: EmailJS REST API request failed', apiError)
-        }
+      } catch (apiError) {
+        console.error('VisitorTracker: EmailJS REST API request failed', apiError)
       }
     }
 
