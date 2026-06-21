@@ -191,6 +191,7 @@ export default function VisitorTracker() {
   const [name, setName] = useState('');
   const [showModal, setShowModal] = useState(!sessionStorage.getItem('visitor_name'));
   const [geoPermission, setGeoPermission] = useState('');
+const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (navigator.permissions && navigator.permissions.query) {
@@ -308,7 +309,7 @@ export default function VisitorTracker() {
             />
           </div>
 
-          {geoPermission === 'prompt' && (
+          {geoPermission !== 'granted' && (
             <button
               className="vt-btn"
               onClick={requestLocationPermission}
