@@ -74,7 +74,7 @@ export default function About() {
 
           <div className="timeline">
             {EXPERIENCE.map((job, i) => (
-              <div key={job.id} className="tl-item">
+              <div key={job.id || `${job.company}-${i}`} className="tl-item">
                 <div className={`tl-dot ${job.current ? 'current' : 'past'}`}>
                   {job.current && <span>●</span>}
                 </div>
@@ -93,15 +93,17 @@ export default function About() {
                     <div className="tl-date"><span>{job.period}</span></div>
                   </div>
                   <ul className="tl-bullets">
-                    {job.bullets.map((b) => (
-                      <li key={b.slice(0, 40)}>{b}</li>
+                    {(job.bullets || []).map((b, bi) => (
+                      <li key={`${job.id || i}-b-${bi}`}>{b}</li>
                     ))}
                   </ul>
-                  <div className="tl-tags">
-                    {job.tags.map((t) => (
-                      <span key={t} className="svc-tag">{t}</span>
-                    ))}
-                  </div>
+                  {(job.tags || []).length > 0 && (
+                    <div className="tl-tags">
+                      {job.tags.map((t) => (
+                        <span key={t} className="svc-tag">{t}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

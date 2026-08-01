@@ -78,7 +78,7 @@ function serializeProjects(list) {
 /** Default portfolio content — used when nothing is saved in admin storage */
 export function getDefaultSiteContent() {
   return {
-    version: 1,
+    version: 6,
     contact: { ...CONTACT, emailjs: { ...CONTACT.emailjs } },
     summary: SUMMARY,
     resume: {
@@ -100,8 +100,8 @@ export function getDefaultSiteContent() {
     projects: serializeProjects(PROJECTS),
     projectCategories: [...PROJECT_CATEGORIES],
     home: {
-      heroStatus: 'Open to Full-Time Opportunities',
-      photoCard1: { big: 'Full Stack AI 🚀', sm: 'Rokkun · GSK GCC · Bangalore' },
+      heroStatus: 'AI Engineer at Ecolab',
+      photoCard1: { big: 'AI Engineer 🚀', sm: 'Ecolab · Rokkun · GSK · Bangalore' },
       photoCard2: { big: 'LLM & RAG ✦', sm: '100+ Enterprise Users' },
       metrics: [
         { n: '2+', l: 'Years AI/FS Dev' },
@@ -117,9 +117,9 @@ export function getDefaultSiteContent() {
       ],
       services: HOME_SERVICES.map((s) => ({ ...s, tags: [...s.tags] })),
       testimonials: HOME_TESTIMONIALS.map((t) => ({ ...t })),
-      ctaTitle: 'Ready to Build Something Amazing?',
+      ctaTitle: 'Let’s Build Something Amazing',
       ctaText:
-        "I'm actively seeking full-time roles in AI Engineering, Full Stack Development, or Product-Driven Companies.",
+        'AI Engineer at Ecolab — open to collaborations on AI platforms, LLM systems, and full stack products.',
     },
     about: {
       extraParagraphs: [

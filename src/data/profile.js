@@ -70,13 +70,28 @@ export const SKILL_CATEGORIES = [
 
 export const EXPERIENCE = [
   {
+    id: 'ecolab',
+    title: 'AI Engineer',
+    company: 'Ecolab',
+    location: 'Bangalore, India',
+    period: '13 July 2026 – Present',
+    type: 'Full-Time',
+    current: true,
+    bullets: [
+      'Building and deploying production AI solutions, LLM-powered workflows, and intelligent automation for enterprise use cases.',
+      'Developing scalable AI services and integrations that improve decision-making and operational efficiency.',
+      'Collaborating with cross-functional teams to ship reliable, measurable AI features from prototype to production.',
+    ],
+    tags: ['AI Engineering', 'LLM', 'Python', 'RAG', 'Cloud'],
+  },
+  {
     id: 'rokkun',
     title: 'Full Stack AI Engineer',
     company: 'Rokkun System Private Ltd',
     location: 'Bangalore, India',
-    period: 'Apr 2026 – Present',
+    period: 'Apr 2026 – Jul 2026',
     type: 'Full-Time',
-    current: true,
+    current: false,
     bullets: [
       'Architected AI-powered market intelligence platform with news ingestion, semantic processing, and LLM retrieval using LangChain and LangGraph.',
       'Integrated Milvus vector database for large-scale semantic search with optimized chunking and embedding pipelines.',

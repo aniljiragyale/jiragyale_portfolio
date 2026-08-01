@@ -22,6 +22,11 @@ export function SiteContentProvider({ children }) {
     setContent(getSiteContent())
   }, [])
 
+  // Drop leftover admin draft jobs (e.g. "Job Title / Company Name") on first load
+  useEffect(() => {
+    reload()
+  }, [reload])
+
   useEffect(() => {
     const onUpdate = () => reload()
     window.addEventListener('portfolio-site-content-updated', onUpdate)

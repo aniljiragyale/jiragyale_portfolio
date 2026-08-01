@@ -100,7 +100,7 @@ export default function Home() {
         <div className="hero-content">
           <div className="hero-status rv">
             <span className="blink"></span>
-            {HOME.heroStatus || 'Open to Full-Time Opportunities'}
+            {HOME.heroStatus || 'AI Engineer at Ecolab'}
           </div>
 
           <h1 className="hero-name hero-name-full rv d1">
@@ -115,7 +115,7 @@ export default function Home() {
           <p className="hero-desc rv d2">
             {SUMMARY.split('Delivered')[0].trim()}
             {' '}Delivered <strong>3+ production platforms</strong> for <strong>100+ users</strong> at{' '}
-            <strong>GSK GCC</strong> and <strong>Rokkun Systems</strong> — improving query accuracy by{' '}
+            <strong>Ecolab</strong>, <strong>Rokkun Systems</strong>, and <strong>GSK GCC</strong> — improving query accuracy by{' '}
             <strong>30%</strong> and reducing manual effort by <strong>~40%</strong>.
           </p>
 
@@ -139,8 +139,8 @@ export default function Home() {
             <div className="photo-glow"></div>
             <img src={anilImg} alt="Anil Jiragyale" className="photo-img" />
             <div className="photo-card">
-              <div className="pc-big">{HOME.photoCard1?.big || 'Full Stack AI 🚀'}</div>
-              <div className="pc-sm">{HOME.photoCard1?.sm || 'Rokkun · GSK GCC · Bangalore'}</div>
+              <div className="pc-big">{HOME.photoCard1?.big || 'AI Engineer 🚀'}</div>
+              <div className="pc-sm">{HOME.photoCard1?.sm || 'Ecolab · Rokkun · GSK · Bangalore'}</div>
             </div>
             <div className="photo-card2">
               <div className="pc2-big">{HOME.photoCard2?.big || 'LLM & RAG ✦'}</div>
